@@ -1,903 +1,1226 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FarmCopilot PS-HK16 | Harvest Intelligence</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
-        .tab-active { border-bottom: 3px solid #059669; color: #059669; }
-        .login-gradient { background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FarmCopilot PS-HK16 | Harvest Intelligence</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ── Base ───────────────────────────────────────── */
+:root {
+  --green:   #16a34a;
+  --green-d: #15803d;
+  --green-l: #dcfce7;
+  --amber:   #d97706;
+  --red:     #dc2626;
+  --ink:     #0f172a;
+  --muted:   #64748b;
+  --surface: #f8fafc;
+  --card:    #ffffff;
+  --border:  #e2e8f0;
+}
+* { box-sizing: border-box; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--surface);
+  color: var(--ink);
+  min-height: 100vh;
+}
+h1,h2,h3,h4,h5 { font-family: 'Syne', sans-serif; }
+
+/* ── Glass / Utility ─────────────────────────────── */
+.glass { background: rgba(255,255,255,0.92); backdrop-filter: blur(16px); }
+.card  { background: var(--card); border: 1px solid var(--border); border-radius: 1.5rem; }
+
+/* ── Nav ─────────────────────────────────────────── */
+.tab-active { border-bottom: 3px solid var(--green); color: var(--green); font-weight: 700; }
+
+/* ── Login ───────────────────────────────────────── */
+.login-bg {
+  background: linear-gradient(135deg,#f0fdf4,#dcfce7,#bbf7d0);
+  background-size: 400% 400%;
+  animation: gradShift 8s ease infinite;
+}
+@keyframes gradShift { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
+
+/* ── Dashboard hero ──────────────────────────────── */
+.hero-bg {
+  background: linear-gradient(120deg,#052e16 0%,#14532d 50%,#166534 100%);
+  position: relative; overflow: hidden;
+}
+.hero-bg::before {
+  content:''; position:absolute; inset:0;
+  background: radial-gradient(ellipse at 80% 50%, rgba(74,222,128,.15) 0%, transparent 60%);
+}
+.hero-bg::after {
+  content:''; position:absolute; inset:0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* ── Stat cards ──────────────────────────────────── */
+.stat-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 1.5rem; transition: transform .2s, box-shadow .2s;
+}
+.stat-card:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(0,0,0,.08); }
+
+/* ── Market ticker ───────────────────────────────── */
+.ticker-wrap { overflow: hidden; position: relative; }
+.ticker-track {
+  display: flex; gap: 0;
+  animation: ticker 30s linear infinite;
+  width: max-content;
+}
+.ticker-track:hover { animation-play-state: paused; }
+@keyframes ticker { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+
+/* ── Weather card ────────────────────────────────── */
+.weather-gradient {
+  background: linear-gradient(135deg,#1e3a5f,#2563eb);
+  border-radius: 1.5rem; color: white;
+}
+
+/* ── Calendar crop pill ──────────────────────────── */
+.crop-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 12px; border-radius: 999px; font-size: .75rem; font-weight: 600;
+  white-space: nowrap;
+}
+.pill-grain  { background: #fef3c7; color: #92400e; }
+.pill-pulse  { background: #ede9fe; color: #5b21b6; }
+.pill-fruit  { background: #fce7f3; color: #9d174d; }
+.pill-comm   { background: #e0f2fe; color: #075985; }
+
+/* ── Alert colours ───────────────────────────────── */
+.alert-danger  { background:#dc2626; }
+.alert-warning { background:#d97706; }
+.alert-success { background:#059669; }
+
+/* ── Lifecycle advice ────────────────────────────── */
+.advice-danger  { background:#fef2f2; border-left:4px solid #dc2626; color:#991b1b; }
+.advice-warning { background:#fffbeb; border-left:4px solid #d97706; color:#92400e; }
+.advice-success { background:#f0fdf4; border-left:4px solid #059669; color:#166534; }
+.advice-info    { background:#eff6ff; border-left:4px solid #2563eb; color:#1e40af; }
+
+/* ── FAQ ─────────────────────────────────────────── */
+.faq-answer { display:none; }
+.faq-item.open .faq-answer { display:block; }
+.faq-item.open .faq-icon { transform:rotate(45deg); }
+.faq-icon { transition:transform .2s ease; }
+
+/* ── Chat ────────────────────────────────────────── */
+#chat-body { scroll-behavior:smooth; }
+
+/* ── Animate in ──────────────────────────────────── */
+@keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+.fade-up { animation: fadeUp .5s ease forwards; }
+.delay-1 { animation-delay:.1s; opacity:0; }
+.delay-2 { animation-delay:.2s; opacity:0; }
+.delay-3 { animation-delay:.3s; opacity:0; }
+.delay-4 { animation-delay:.4s; opacity:0; }
+
+/* ── Compare table ───────────────────────────────── */
+.compare-win  { background:#f0fdf4; font-weight:700; color:#16a34a; }
+.compare-lose { color:#94a3b8; }
+
+/* ── Scrollbar ───────────────────────────────────── */
+::-webkit-scrollbar { width:6px; height:6px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:99px; }
+</style>
 </head>
-<body class="bg-slate-50 min-h-screen">
+<body>
 
-    
-    <div id="login-page" class="fixed inset-0 z-[100] flex items-center justify-center login-gradient">
-    <div class="glass p-10 rounded-3xl shadow-2xl border border-white max-w-md w-full text-center space-y-6">
-        <div class="flex flex-col items-center gap-2 text-3xl font-extrabold text-green-700 mb-4">
-            <i class="fas fa-leaf text-5xl"></i>
-            <span>FarmCopilot</span>
-        </div>
-        
-        <h2 id="auth-title" class="text-xl font-bold text-slate-800">Farmer Login</h2>
-        
-        <div class="space-y-4 text-left">
-            <div id="name-field" class="hidden">
-                <label class="text-xs font-bold text-slate-400 uppercase ml-1">Full Name</label>
-                <input type="text" id="reg-fullname" placeholder="John Doe" class="w-full border border-slate-200 p-3 rounded-xl focus:ring-2 focus:ring-green-500 outline-none transition mt-1">
-            </div>
-            <div>
-                <label class="text-xs font-bold text-slate-400 uppercase ml-1">Farmer ID (Username)</label>
-                <input type="text" id="username" placeholder="Farmer ID" class="w-full border border-slate-200 p-3 rounded-xl focus:ring-2 focus:ring-green-500 outline-none transition mt-1">
-            </div>
-            <div>
-                <label class="text-xs font-bold text-slate-400 uppercase ml-1">Password</label>
-                <input type="password" id="password" placeholder="••••••••" class="w-full border border-slate-200 p-3 rounded-xl focus:ring-2 focus:ring-green-500 outline-none transition mt-1">
-            </div>
-        </div>
+<!-- ════════════════════════════════════════════════
+     LOGIN PAGE
+════════════════════════════════════════════════ -->
+<div id="login-page" class="fixed inset-0 z-[100] flex items-center justify-center login-bg">
+  <div class="glass p-10 rounded-3xl shadow-2xl border border-white/60 max-w-md w-full text-center space-y-5 mx-4">
+    <div class="flex flex-col items-center gap-2 mb-2">
+      <div class="w-16 h-16 bg-green-600 rounded-2xl flex items-center justify-center shadow-lg">
+        <i class="fas fa-leaf text-white text-2xl"></i>
+      </div>
+      <h1 class="text-2xl font-extrabold text-green-800" style="font-family:'Syne',sans-serif">FarmCopilot</h1>
+      <p class="text-xs text-slate-500 font-medium tracking-widest uppercase">PS-HK16 · Harvest Intelligence</p>
+    </div>
+    <h2 id="auth-title" class="text-lg font-bold text-slate-800">Farmer Login</h2>
+    <div class="space-y-3 text-left">
+      <div id="name-field" class="hidden">
+        <label class="text-xs font-bold text-slate-400 uppercase ml-1">Full Name</label>
+        <input type="text" id="reg-fullname" placeholder="John Doe"
+          class="w-full border border-slate-200 p-3 rounded-xl focus:ring-2 focus:ring-green-500 outline-none transition mt-1 bg-white/80">
+      </div>
+      <div>
+        <label class="text-xs font-bold text-slate-400 uppercase ml-1">Farmer ID</label>
+        <input type="text" id="username" placeholder="Enter Farmer ID"
+          class="w-full border border-slate-200 p-3 rounded-xl focus:ring-2 focus:ring-green-500 outline-none transition mt-1 bg-white/80"
+          onkeydown="if(event.key==='Enter')handleAuth()">
+      </div>
+      <div>
+        <label class="text-xs font-bold text-slate-400 uppercase ml-1">Password</label>
+        <input type="password" id="password" placeholder="••••••••"
+          class="w-full border border-slate-200 p-3 rounded-xl focus:ring-2 focus:ring-green-500 outline-none transition mt-1 bg-white/80"
+          onkeydown="if(event.key==='Enter')handleAuth()">
+      </div>
+    </div>
+    <p id="auth-error" class="text-red-500 text-sm font-semibold hidden text-left"></p>
+    <button id="auth-btn" onclick="handleAuth()"
+      class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3.5 rounded-xl shadow-lg transition-all active:scale-95">
+      <i class="fas fa-sign-in-alt mr-2"></i>Access Dashboard
+    </button>
+    <p class="text-sm text-slate-500">
+      <span id="toggle-text">New farmer?</span>
+      <a href="javascript:void(0)" onclick="toggleAuthMode()" id="toggle-link" class="text-green-600 font-bold ml-1">Create Account</a>
+    </p>
+  </div>
+</div>
 
-        <button id="auth-btn" onclick="handleAuth()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-xl shadow-lg transition-all">
-            Access Dashboard
+<!-- ════════════════════════════════════════════════
+     MAIN CONTENT
+════════════════════════════════════════════════ -->
+<div id="main-content" class="hidden">
+
+  <!-- ── NAV ───────────────────────────────────── -->
+  <nav class="glass sticky top-0 z-50 border-b border-slate-200/80 shadow-sm">
+    <div class="container mx-auto px-6 py-3 flex justify-between items-center flex-wrap gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 bg-green-600 rounded-xl flex items-center justify-center">
+          <i class="fas fa-leaf text-white text-sm"></i>
+        </div>
+        <div>
+          <span class="text-lg font-extrabold text-green-700" style="font-family:'Syne',sans-serif">FarmCopilot</span>
+          <span class="text-slate-300 mx-1">·</span>
+          <span class="text-slate-400 text-sm font-medium">PS-HK16</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-1 font-medium text-slate-600 flex-wrap">
+        <button onclick="showSection('dashboard')" id="nav-dashboard"
+          class="tab-active px-4 py-2 rounded-xl text-sm transition hover:bg-green-50">
+          <i class="fas fa-th-large mr-1.5"></i>Dashboard
         </button>
-
-        <p class="text-sm text-slate-500">
-            <span id="toggle-text">New farmer?</span> 
-            <a href="javascript:void(0)" onclick="toggleAuthMode()" id="toggle-link" class="text-green-600 font-bold">Create Account</a>
-        </p>
+        <button onclick="showSection('predictor')" id="nav-predictor"
+          class="px-4 py-2 rounded-xl text-sm transition hover:bg-slate-100">
+          <i class="fas fa-vial mr-1.5"></i>Soil Predictor
+        </button>
+        <button onclick="showSection('lifecycle')" id="nav-lifecycle"
+          class="px-4 py-2 rounded-xl text-sm transition hover:bg-slate-100">
+          <i class="fas fa-seedling mr-1.5"></i>Lifecycle
+        </button>
+        <button onclick="showSection('feedback')" id="nav-feedback"
+          class="px-4 py-2 rounded-xl text-sm transition hover:bg-slate-100">
+          <i class="fas fa-star mr-1.5"></i>Ratings
+        </button>
+        <button onclick="showSection('faq')" id="nav-faq"
+          class="px-4 py-2 rounded-xl text-sm transition hover:bg-slate-100">
+          <i class="fas fa-question-circle mr-1.5"></i>FAQ
+        </button>
+        <div class="w-px h-6 bg-slate-200 mx-1"></div>
+        <select id="languageSelect" onchange="translateLanguage(this.value)"
+          class="px-3 py-2 border border-slate-200 rounded-xl text-sm font-semibold bg-white">
+          <option value="en">🌐 EN</option>
+          <option value="hi">हिन्दी</option>
+          <option value="or">ଓଡ଼ିଆ</option>
+          <option value="te">తెలుగు</option>
+        </select>
+        <button onclick="location.reload()"
+          class="ml-1 px-3 py-2 rounded-xl text-sm text-red-500 hover:bg-red-50 transition" title="Logout">
+          <i class="fas fa-sign-out-alt"></i>
+        </button>
+      </div>
     </div>
-</div>
+  </nav>
 
-    <div id="main-content" class="hidden">
-        <nav class="glass sticky top-0 z-50 border-b border-slate-200">
-            <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-                <div class="flex items-center gap-2 text-2xl font-extrabold text-green-700">
-                    <i class="fas fa-leaf"></i>
-                    <span>FarmCopilot <span class="text-slate-400 font-light">PS-HK16</span></span>
-                </div>
-                <div class="flex gap-8 font-semibold text-slate-600 items-center">
-                    <button onclick="showSection('dashboard')" id="nav-dashboard" class="tab-active py-2">Dashboard</button>
-                    <button onclick="showSection('predictor')" id="nav-predictor" class="py-2 hover:text-green-600">Soil Predictor</button>
-                    <button onclick="showSection('lifecycle')" id="nav-lifecycle" class="py-2 hover:text-green-600">Lifecycle Monitor</button>
-                    <button onclick="location.reload()" class="text-red-500 ml-4"><i class="fas fa-sign-out-alt"></i></button>
-                </div>
-            </div>
-            <select id="languageSelect" onchange="translateLanguage(this.value)"
-class="px-3 py-2 border rounded-lg font-semibold">
+  <!-- ════════════════════════════════════════════
+       DASHBOARD SECTION
+  ════════════════════════════════════════════ -->
+  <section id="section-dashboard" class="space-y-0">
 
-    <option value="en">English</option>
-    <option value="hi">हिन्दी</option>
-    <option value="or">ଓଡ଼ିଆ</option>
-    <option value="te">తెలుగు</option>
-
-</select>
-
-        </nav>
-
-        <div class="container mx-auto px-4 py-8">
-            <section id="section-dashboard" class="space-y-8">
-               
+    <!-- ── HERO BANNER ──────────────────────── -->
+    <div class="hero-bg text-white px-6 py-10 relative z-10">
+      <div class="container mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div class="fade-up">
+          <p class="text-green-300 text-xs font-bold uppercase tracking-widest mb-1">Good day,</p>
+          <h1 class="text-4xl md:text-5xl font-extrabold leading-tight">
+            <span id="farmer-name-display">Farmer</span> 👋
+          </h1>
+          <p class="text-green-200 mt-2 text-base font-medium" id="hero-date"></p>
         </div>
-    </div>
-
-</section>
-                <div class="flex flex-col md:flex-row justify-between items-end gap-4 border-b pb-6 border-slate-200">
-                    <div>
-                        <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight">Field Intelligence</h1>
-                        <p class="text-slate-500 font-medium">Monitoring system <span class="text-green-600 font-bold">PS-HK16</span> active.</p>
-                    </div>
-                    <div class="bg-white px-4 py-2 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-3">
-                        <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                        <span class="text-sm font-bold text-slate-600">Smart Farm</span>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100">
-                        <div class="flex items-center gap-4">
-                            <div class="bg-blue-50 p-3 rounded-2xl text-blue-600"><i class="fas fa-microchip text-xl"></i></div>
-                            <div>
-                                <p class="text-xs font-bold text-slate-400 uppercase">MARKET UPDATES</p>
-                                <p class="text-xl font-black text-slate-800">Live Mandi</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100">
-                        <div class="flex items-center gap-4">
-                            <div class="bg-green-50 p-3 rounded-2xl text-green-600"><i class="fas fa-shield-halved text-xl"></i></div>
-                            <div>
-                                <p class="text-xs font-bold text-slate-400 uppercase">WEATHER ENGINE</p>
-                                <p class="text-xl font-black text-slate-800">Hyper-Local</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100">
-                        <div class="flex items-center gap-4">
-                            <div class="bg-orange-50 p-3 rounded-2xl text-orange-600"><i class="fas fa-bolt text-xl"></i></div>
-                            <div>
-                                <p class="text-xs font-bold text-slate-400 uppercase">Used By Farmers</p>
-                                <p class="text-xl font-black text-slate-800">700+</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100">
-                        <div class="flex items-center gap-4">
-                            <div class="bg-purple-50 p-3 rounded-2xl text-purple-600"><i class="fas fa-earth-americas text-xl"></i></div>
-                            <div>
-                                <p class="text-xs font-bold text-slate-400 uppercase">SOIL ANALYSIS</p>
-                                <p class="text-xl font-black text-slate-800">NPK Insights</p>
-                            </div>
-                        </div>
-                    </div>
-                </div><br><br>
-
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div onclick="showSection('predictor')" class="lg:col-span-2 relative overflow-hidden group cursor-pointer bg-green-900 rounded-[2.5rem] shadow-2xl h-[400px]">
-                        <img src="https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?auto=format&fit=crop&q=80&w=1000" 
-                             class="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-110 transition-transform duration-700" alt="Field">
-                        <div class="absolute inset-0 bg-gradient-to-t from-green-950 via-transparent to-transparent"></div>
-                        <div class="absolute bottom-10 left-10 text-white max-w-md">
-                            <span class="bg-green-500 text-[10px] font-black uppercase px-3 py-1 rounded-full tracking-widest">Soil Prediction Engine</span>
-                            <h2 class="text-4xl font-extrabold mt-4 leading-tight">Advanced Crop Matching</h2>
-                            <p class="text-green-100 mt-4 font-medium">Our PS-HK16 algorithm analyzes NPK levels and environmental factors to predict the most profitable crop for your land.</p>
-                        </div>
-                    </div>
-
-                    <div class="space-y-6">
-                        <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-                            <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2">
-                                <i class="fas fa-star text-yellow-500"></i> Core Features
-                            </h3>
-                            <ul class="space-y-4">
-                                <li class="flex gap-3 items-start">
-                                    <div class="text-green-600 mt-1"><i class="fas fa-check-circle"></i></div>
-                                    <p class="text-sm text-slate-600"><strong>Real-time NPK Analysis:</strong> Dynamic soil health monitoring.</p>
-                                </li>
-                                <li class="flex gap-3 items-start">
-                                    <div class="text-green-600 mt-1"><i class="fas fa-check-circle"></i></div>
-                                    <p class="text-sm text-slate-600"><strong>Decay Prevention:</strong> Predicts harvest rot before it happens.</p>
-                                </li>
-                                <li class="flex gap-3 items-start">
-                                    <div class="text-green-600 mt-1"><i class="fas fa-check-circle"></i></div>
-                                    <p class="text-sm text-slate-600"><strong>Weather Sync:</strong> Live data integration for precise planning.</p>
-                                </li>
-                            </ul>
-                        </div>
-
-                        <div onclick="showSection('lifecycle')" class="group cursor-pointer bg-gradient-to-br from-blue-600 to-indigo-700 p-6 rounded-3xl shadow-lg text-white">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <p class="text-xs font-bold text-blue-100 uppercase">Environmental Sync</p>
-                                    <h4 class="text-xl font-black mt-1" id="dash-city-name">Global Tracking</h4>
-                                </div>
-                                <i class="fas fa-cloud-sun-bolt text-4xl text-blue-200"></i>
-                            </div>
-                            <p class="mt-4 text-xs font-medium text-blue-100">Enter your city in the Lifecycle Monitor to sync local humidity and rain data to your PS-HK16 dashboard.</p>
-                            <div class="mt-4 pt-4 border-t border-white/10 text-xs font-bold flex items-center justify-between uppercase">
-                                Sync Weather Now <i class="fas fa-chevron-right text-[10px] group-hover:translate-x-1 transition-transform"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section><br><br>
-             <div class="bg-green-700 text-white py-6 text-center">
-    <h3 class="text-xl font-semibold">
-        700+ Farmers | 4.9/5 Average Rating
-    </h3>
-</div>
-                <section id="section-testimonials" class="py-16 bg-slate-50">
-
-    <div class="max-w-6xl mx-auto px-6 text-center">
-        <h2 class="text-3xl font-bold text-slate-800">
-            Trusted by 700+ Farmers Across India 🌾
-        </h2>
-        <p class="mt-3 text-slate-600">
-            Real farmers. Real results. AI-powered accurate crop decisions.
-        </p>
-
-        <div class="grid md:grid-cols-3 gap-8 mt-12">
-
-            <!-- Card 1 -->
-            <div class="bg-white p-6 rounded-2xl shadow-lg">
-                <div class="text-yellow-500 text-lg">★★★★★</div>
-                <p class="mt-4 text-slate-600">
-                    "The soil prediction was accurate. I switched to maize and increased profit by 18%."
-                </p>
-                <h4 class="mt-4 font-semibold text-slate-800">
-                    Ramesh Patel
-                </h4>
-                <p class="text-sm text-slate-500">Maharashtra</p>
+        <div class="flex gap-3 flex-wrap fade-up delay-1">
+          <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl px-5 py-3 text-center min-w-[110px]">
+            <p class="text-green-300 text-xs font-bold uppercase">System</p>
+            <div class="flex items-center justify-center gap-2 mt-1">
+              <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+              <span class="font-bold text-sm">PS-HK16 Live</span>
             </div>
-
-            <!-- Card 2 -->
-            <div class="bg-white p-6 rounded-2xl shadow-lg">
-                <div class="text-yellow-500 text-lg">★★★★★</div>
-                <p class="mt-4 text-slate-600">
-                    "Inputing soil info made everything easy. The AI lifecycle advice is very helpful."
-                </p>
-                <h4 class="mt-4 font-semibold text-slate-800">
-                    Sita Devi
-                </h4>
-                <p class="text-sm text-slate-500">Odisha</p>
-            </div>
-
-            <!-- Card 3 -->
-            <div class="bg-white p-6 rounded-2xl shadow-lg">
-                <div class="text-yellow-500 text-lg">★★★★★</div>
-                <p class="mt-4 text-slate-600">
-                    "Best platform for crop planning. My tomato yield improved significantly."
-                </p>
-                <h4 class="mt-4 font-semibold text-slate-800">
-                    Ravi Kumar
-                </h4>
-                <p class="text-sm text-slate-500">Telangana</p>
-            </div>
-<div class="bg-white mt-12 p-8 rounded-2xl shadow-lg w-full">
-    <h3 class="text-2xl font-bold text-slate-800 text-center">
-        Rate & Review Our AI Prediction System 🌾
-    </h3>
-
-    <!-- ⭐ Rating Stars -->
-    <div class="flex justify-center gap-2 mt-6 text-3xl cursor-pointer" 
-         id="starContainer">
-        <span onclick="rateApp(1)">☆</span>
-        <span onclick="rateApp(2)">☆</span>
-        <span onclick="rateApp(3)">☆</span>
-        <span onclick="rateApp(4)">☆</span>
-        <span onclick="rateApp(5)">☆</span>
-    </div>
-
-    <p class="mt-4 text-slate-600 text-center">
-        Average Rating: <span id="avgRating">4.9</span> / 5
-    </p>
-
-    <p class="text-sm text-slate-500 text-center mb-6">
-        Based on <span id="totalRatings">742</span> farmer reviews
-    </p>
-
-    <!-- 📝 Text Feedback -->
-    <label class="font-semibold text-slate-700">
-        Share Your Feedback
-    </label>
-
-    <textarea id="feedbackText"
-        rows="4"
-        placeholder="Write your experience here..."
-        class="mt-2 w-full border p-3 rounded-xl"></textarea>
-
-    <button onclick="submitFeedback()"
-        class="mt-4 bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-xl">
-        Submit Feedback
-    </button>
-
-    <p id="feedbackMsg"
-       class="mt-3 text-green-600 font-semibold hidden">
-        Thank you for your valuable feedback! 🌟
-    </p>
-
-</div>
-
-</div>
-
-
-            <section id="section-predictor" class="hidden">
-                <div class="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10">
-                    <div class="bg-white p-8 rounded-3xl shadow-xl">
-                        <h2 class="text-2xl font-bold mb-6"><i class="fas fa-vial text-green-600"></i> Soil Data</h2>
-                        <form id="predictionForm" class="space-y-5">
-                            <div class="grid grid-cols-2 gap-4">
-                                <input type="number" id="Nitrogen" placeholder="Nitrogen 0-150" class="border p-3 rounded-xl w-full" required step="any">
-                                <input type="number" id="phosphorus" placeholder="Phosphorus 5-150" class="border p-3 rounded-xl w-full" required step="any">
-                                <input type="number" id="potassium" placeholder="Potassium 5-210" class="border p-3 rounded-xl w-full" required step="any">
-                                <input type="number" id="ph" placeholder="Soil pH 3.5-9.0" class="border p-3 rounded-xl w-full" required step="any">
-                            </div>
-                            <input type="number" id="temperature" placeholder="Temperature (°C) 10-50" class="border p-3 rounded-xl w-full" required step="any">
-                            <input type="number" id="humidity" placeholder="Humidity (%) 15-100" class="border p-3 rounded-xl w-full" required step="any">
-                            <input type="number" id="rainfall" placeholder="Rainfall (mm) 20-300" class="border p-3 rounded-xl w-full" required step="any">
-                            <div class="flex gap-4">
-    <button type="button"
-        onclick="clearSoilForm()"
-        class="w-1/3 bg-gray-200 hover:bg-gray-300 text-slate-700 font-bold py-4 rounded-xl transition">
-        Clear
-    </button>
-
-    <button type="submit"
-        class="w-2/3 bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-xl transition">
-        Generate Action Plan
-    </button>
-</div>
-                        </form>
-                    </div>
-                   <div id="results" class="hidden space-y-4">
-    <div class="bg-white p-8 rounded-3xl shadow-xl border-l-8 border-green-500">
-        <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Recommended Crop</span>
-        <p id="resCrop" class="text-5xl font-extrabold text-green-700 mb-3"></p>
-        <div id="alertBox" class="inline-block px-4 py-1 rounded-full text-xs font-bold text-white">
-            <span id="resAlert"></span>
+          </div>
+          <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl px-5 py-3 text-center min-w-[110px]">
+            <p class="text-green-300 text-xs font-bold uppercase">Farmers</p>
+            <p class="font-extrabold text-xl mt-1">700+</p>
+          </div>
+          <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl px-5 py-3 text-center min-w-[110px]">
+            <p class="text-green-300 text-xs font-bold uppercase">Crops</p>
+            <p class="font-extrabold text-xl mt-1">22</p>
+          </div>
         </div>
+      </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="bg-white p-6 rounded-3xl shadow-md border border-slate-100">
-            <p class="text-xs font-bold text-slate-400 uppercase mb-2">Growth Duration</p>
+    <!-- ── MARKET TICKER ─────────────────────── -->
+    <div class="bg-green-800 text-white py-2 px-0 overflow-hidden">
+      <div class="ticker-wrap">
+        <div class="ticker-track" id="tickerTrack">
+          <!-- injected by JS -->
+        </div>
+      </div>
+    </div>
+
+    <div class="container mx-auto px-4 py-8 space-y-8">
+
+      <!-- ── STAT CARDS ──────────────────────── -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="stat-card p-5 cursor-pointer fade-up delay-1" onclick="showSection('predictor')">
+          <div class="flex items-start justify-between mb-3">
+            <div class="bg-blue-50 p-3 rounded-2xl text-blue-600"><i class="fas fa-vial text-lg"></i></div>
+            <span class="text-xs font-bold text-blue-500 bg-blue-50 px-2 py-1 rounded-lg">AI</span>
+          </div>
+          <p class="text-2xl font-extrabold text-slate-800">22 Crops</p>
+          <p class="text-xs text-slate-400 font-medium mt-1">Soil Predictor Engine</p>
+        </div>
+        <div class="stat-card p-5 cursor-pointer fade-up delay-2" onclick="showSection('lifecycle')">
+          <div class="flex items-start justify-between mb-3">
+            <div class="bg-green-50 p-3 rounded-2xl text-green-600"><i class="fas fa-cloud-sun text-lg"></i></div>
+            <span class="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-lg">Live</span>
+          </div>
+          <p class="text-2xl font-extrabold text-slate-800">Weather</p>
+          <p class="text-xs text-slate-400 font-medium mt-1">Hyper-Local Forecast</p>
+        </div>
+        <div class="stat-card p-5 fade-up delay-3">
+          <div class="flex items-start justify-between mb-3">
+            <div class="bg-amber-50 p-3 rounded-2xl text-amber-600"><i class="fas fa-chart-line text-lg"></i></div>
+            <span class="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded-lg">₹</span>
+          </div>
+          <p class="text-2xl font-extrabold text-slate-800">Mandi</p>
+          <p class="text-xs text-slate-400 font-medium mt-1">Live Price Updates</p>
+        </div>
+        <div class="stat-card p-5 fade-up delay-4">
+          <div class="flex items-start justify-between mb-3">
+            <div class="bg-purple-50 p-3 rounded-2xl text-purple-600"><i class="fas fa-star text-lg"></i></div>
+            <span class="text-xs font-bold text-purple-600 bg-purple-50 px-2 py-1 rounded-lg">4.9★</span>
+          </div>
+          <p class="text-2xl font-extrabold text-slate-800">700+ Reviews</p>
+          <p class="text-xs text-slate-400 font-medium mt-1">Farmer Satisfaction</p>
+        </div>
+      </div>
+
+      <!-- ── MAIN GRID: weather + calendar + compare ── -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Weather Widget -->
+        <div class="weather-gradient p-6 shadow-xl lg:col-span-1">
+          <div class="flex items-center justify-between mb-4">
+            <p class="text-sm font-bold text-blue-200 uppercase tracking-wider">Live Weather</p>
+            <i class="fas fa-satellite-dish text-blue-300 text-sm"></i>
+          </div>
+          <div class="flex gap-2 mb-4">
+            <input id="weather-city-input" type="text" placeholder="Enter city…"
+              class="flex-1 bg-white/10 border border-white/20 text-white placeholder-blue-200 px-3 py-2 rounded-xl text-sm outline-none focus:bg-white/20 transition"
+              onkeydown="if(event.key==='Enter')fetchDashboardWeather()">
+            <button onclick="fetchDashboardWeather()"
+              class="bg-white/20 hover:bg-white/30 text-white px-3 py-2 rounded-xl text-sm transition">
+              <i class="fas fa-search"></i>
+            </button>
+          </div>
+          <div id="weather-result">
+            <div class="text-center py-4 text-blue-200 text-sm">
+              <i class="fas fa-cloud text-3xl mb-2 block opacity-50"></i>Enter a city to see live weather
+            </div>
+          </div>
+        </div>
+
+        <!-- Sowing Calendar -->
+        <div class="card p-6 lg:col-span-2">
+          <div class="flex items-center justify-between mb-5">
+            <div>
+              <h3 class="text-lg font-bold text-slate-800">🗓 Sowing Calendar</h3>
+              <p class="text-xs text-slate-400 mt-0.5">Crops ideal to sow this & next month</p>
+            </div>
+            <div class="flex gap-2 text-xs font-bold">
+              <button onclick="showCalendar('now')" id="cal-now"
+                class="px-3 py-1.5 bg-green-600 text-white rounded-lg transition">This Month</button>
+              <button onclick="showCalendar('next')" id="cal-next"
+                class="px-3 py-1.5 bg-slate-100 text-slate-600 rounded-lg transition">Next Month</button>
+            </div>
+          </div>
+          <div id="calendar-content" class="flex flex-wrap gap-2 min-h-[80px]">
+            <div class="text-slate-400 text-sm w-full text-center py-4">
+              <i class="fas fa-spinner fa-spin mr-2"></i>Loading calendar...
+            </div>
+          </div>
+          <div id="calendar-detail" class="mt-4 hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="text-left text-xs font-bold text-slate-400 border-b border-slate-100">
+                    <th class="pb-2">Crop</th><th class="pb-2">Type</th>
+                    <th class="pb-2">Growth</th><th class="pb-2">Mandi Price</th>
+                  </tr>
+                </thead>
+                <tbody id="calendar-table-body" class="divide-y divide-slate-50"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── CROP COMPARATOR + QUICK ACTIONS ── -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Quick Actions -->
+        <div class="card p-6">
+          <h3 class="text-lg font-bold text-slate-800 mb-4">⚡ Quick Actions</h3>
+          <div class="space-y-3">
+            <button onclick="showSection('predictor')"
+              class="w-full flex items-center gap-3 p-3 rounded-2xl bg-green-50 hover:bg-green-100 text-green-700 font-semibold text-sm transition">
+              <div class="w-9 h-9 bg-green-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-vial text-white text-xs"></i>
+              </div>
+              Predict Best Crop
+            </button>
+            <button onclick="showSection('lifecycle')"
+              class="w-full flex items-center gap-3 p-3 rounded-2xl bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold text-sm transition">
+              <div class="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-seedling text-white text-xs"></i>
+              </div>
+              Check Lifecycle Status
+            </button>
+            <button onclick="showSection('feedback')"
+              class="w-full flex items-center gap-3 p-3 rounded-2xl bg-amber-50 hover:bg-amber-100 text-amber-700 font-semibold text-sm transition">
+              <div class="w-9 h-9 bg-amber-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-star text-white text-xs"></i>
+              </div>
+              Leave Feedback
+            </button>
+            <button onclick="showSection('faq')"
+              class="w-full flex items-center gap-3 p-3 rounded-2xl bg-purple-50 hover:bg-purple-100 text-purple-700 font-semibold text-sm transition">
+              <div class="w-9 h-9 bg-purple-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-question text-white text-xs"></i>
+              </div>
+              Browse FAQ
+            </button>
+          </div>
+        </div>
+
+        <!-- Crop Comparator -->
+        <div class="card p-6 lg:col-span-2">
+          <div class="flex items-center justify-between mb-5">
+            <div>
+              <h3 class="text-lg font-bold text-slate-800">⚖️ Crop Comparator</h3>
+              <p class="text-xs text-slate-400 mt-0.5">Compare two crops side-by-side</p>
+            </div>
+          </div>
+          <div class="flex gap-3 mb-5">
+            <select id="comp-crop1" class="flex-1 border border-slate-200 p-2.5 rounded-xl text-sm font-medium focus:ring-2 focus:ring-green-400 outline-none">
+              <option value="rice">Rice</option><option value="maize">Maize</option>
+              <option value="chickpea">Chickpea</option><option value="cotton">Cotton</option>
+              <option value="mungbean">Mung Bean</option><option value="pigeonpeas">Pigeon Peas</option>
+              <option value="banana">Banana</option><option value="mango">Mango</option>
+              <option value="grapes">Grapes</option><option value="coffee">Coffee</option>
+              <option value="jute">Jute</option><option value="coconut">Coconut</option>
+            </select>
+            <div class="flex items-center text-slate-400 font-bold text-sm">VS</div>
+            <select id="comp-crop2" class="flex-1 border border-slate-200 p-2.5 rounded-xl text-sm font-medium focus:ring-2 focus:ring-green-400 outline-none">
+              <option value="maize" selected>Maize</option><option value="rice">Rice</option>
+              <option value="chickpea">Chickpea</option><option value="cotton">Cotton</option>
+              <option value="mungbean">Mung Bean</option><option value="pigeonpeas">Pigeon Peas</option>
+              <option value="banana">Banana</option><option value="mango">Mango</option>
+              <option value="grapes">Grapes</option><option value="coffee">Coffee</option>
+              <option value="jute">Jute</option><option value="coconut">Coconut</option>
+            </select>
+            <button onclick="runComparison()"
+              class="bg-green-600 hover:bg-green-700 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition active:scale-95">
+              Compare
+            </button>
+          </div>
+          <div id="compare-result">
+            <div class="text-center py-6 text-slate-400 text-sm">
+              <i class="fas fa-balance-scale text-3xl mb-2 block opacity-30"></i>Select two crops and click Compare
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── TODAY'S FARMING TIP ─────────────── -->
+      <div class="rounded-3xl overflow-hidden bg-gradient-to-r from-green-700 to-emerald-600 p-6 text-white flex flex-col md:flex-row items-center gap-6 shadow-xl">
+        <div class="text-5xl">🌾</div>
+        <div class="flex-1">
+          <p class="text-xs font-bold uppercase tracking-widest text-green-200 mb-1">Today's Farming Insight</p>
+          <p id="daily-tip" class="text-base font-semibold leading-relaxed"></p>
+        </div>
+        <button onclick="nextTip()" class="bg-white/20 hover:bg-white/30 text-white border border-white/30 px-4 py-2 rounded-xl text-sm font-bold flex-shrink-0 transition">
+          Next Tip →
+        </button>
+      </div>
+
+    </div><!-- /container -->
+  </section>
+
+  <!-- ════════════════════════════════════════════
+       SOIL PREDICTOR
+  ════════════════════════════════════════════ -->
+  <section id="section-predictor" class="hidden container mx-auto px-4 py-8">
+    <div class="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10">
+      <div class="card p-8 shadow-xl">
+        <h2 class="text-2xl font-bold mb-6"><i class="fas fa-vial text-green-600 mr-2"></i>Soil Data Input</h2>
+        <form id="predictionForm" class="space-y-5" onsubmit="submitPrediction(event)">
+          <div class="grid grid-cols-2 gap-4">
+            <div><label class="text-xs font-bold text-slate-400 uppercase ml-1">Nitrogen</label>
+              <input type="number" id="Nitrogen" placeholder="0–140"
+                class="border p-3 rounded-xl w-full mt-1 focus:ring-2 focus:ring-green-400 outline-none" required step="any"></div>
+            <div><label class="text-xs font-bold text-slate-400 uppercase ml-1">Phosphorus</label>
+              <input type="number" id="phosphorus" placeholder="5–145"
+                class="border p-3 rounded-xl w-full mt-1 focus:ring-2 focus:ring-green-400 outline-none" required step="any"></div>
+            <div><label class="text-xs font-bold text-slate-400 uppercase ml-1">Potassium</label>
+              <input type="number" id="potassium" placeholder="5–205"
+                class="border p-3 rounded-xl w-full mt-1 focus:ring-2 focus:ring-green-400 outline-none" required step="any"></div>
+            <div><label class="text-xs font-bold text-slate-400 uppercase ml-1">Soil pH</label>
+              <input type="number" id="ph" placeholder="3.5–9.0"
+                class="border p-3 rounded-xl w-full mt-1 focus:ring-2 focus:ring-green-400 outline-none" required step="any"></div>
+          </div>
+          <div><label class="text-xs font-bold text-slate-400 uppercase ml-1">Temperature (°C)</label>
+            <input type="number" id="temperature" placeholder="10–50"
+              class="border p-3 rounded-xl w-full mt-1 focus:ring-2 focus:ring-green-400 outline-none" required step="any"></div>
+          <div><label class="text-xs font-bold text-slate-400 uppercase ml-1">Humidity (%)</label>
+            <input type="number" id="humidity" placeholder="15–100"
+              class="border p-3 rounded-xl w-full mt-1 focus:ring-2 focus:ring-green-400 outline-none" required step="any"></div>
+          <div><label class="text-xs font-bold text-slate-400 uppercase ml-1">Rainfall (mm)</label>
+            <input type="number" id="rainfall" placeholder="20–300"
+              class="border p-3 rounded-xl w-full mt-1 focus:ring-2 focus:ring-green-400 outline-none" required step="any"></div>
+          <p id="soilError" class="text-red-500 text-sm font-semibold hidden"></p>
+          <div class="flex gap-3">
+            <button type="button" onclick="clearSoilForm()"
+              class="w-1/3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 rounded-xl transition">Clear</button>
+            <button type="submit" id="predictBtn"
+              class="w-2/3 bg-green-600 hover:bg-green-700 text-white font-bold py-3.5 rounded-xl transition active:scale-95">
+              Generate Action Plan
+            </button>
+          </div>
+        </form>
+      </div>
+      <!-- Results -->
+      <div id="results" class="hidden space-y-4">
+        <div class="card p-8 shadow-xl border-l-[6px] border-green-500">
+          <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Recommended Crop</span>
+          <p id="resCrop" class="text-5xl font-extrabold text-green-700 mt-2 mb-3 capitalize"></p>
+          <div id="alertBox" class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold text-white">
+            <i class="fas fa-circle-info"></i><span id="resAlert"></span>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="card p-5 shadow-sm">
+            <p class="text-xs font-bold text-slate-400 uppercase mb-3">Growth Duration</p>
             <div class="flex items-center gap-3">
-                <div class="bg-blue-50 p-2 rounded-lg text-blue-600"><i class="fas fa-hourglass-half"></i></div>
-                <span id="resDuration" class="text-xl font-bold text-slate-800">-- Days</span>
+              <div class="bg-blue-50 p-2.5 rounded-xl text-blue-600"><i class="fas fa-hourglass-half"></i></div>
+              <span id="resDuration" class="text-xl font-bold text-slate-800"></span>
             </div>
-            <p class="text-[10px] text-slate-400 mt-2">Time from sowing to peak harvest readiness.</p>
-        </div>
-
-        <div class="bg-white p-6 rounded-3xl shadow-md border border-slate-100">
-            <p class="text-xs font-bold text-slate-400 uppercase mb-2">Mandi Price Forecast</p>
+            <p class="text-[10px] text-slate-400 mt-2">Sowing to peak harvest readiness.</p>
+          </div>
+          <div class="card p-5 shadow-sm">
+            <p class="text-xs font-bold text-slate-400 uppercase mb-3">Mandi Forecast</p>
             <div class="flex items-center gap-3">
-                <div class="bg-green-50 p-2 rounded-lg text-green-600"><i class="fas fa-tag"></i></div>
-                <span id="resPrice" class="text-xl font-bold text-slate-800">Calculating...</span>
+              <div class="bg-green-50 p-2.5 rounded-xl text-green-600"><i class="fas fa-tag"></i></div>
+              <span id="resPrice" class="text-xl font-bold text-slate-800"></span>
             </div>
-            <p id="resMonth" class="text-[10px] text-slate-500 mt-2 font-semibold italic">Best Month to Sell: --</p>
+            <p id="resMonth" class="text-[10px] text-slate-500 mt-2 font-semibold italic"></p>
+          </div>
         </div>
+      </div>
     </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════
+       LIFECYCLE MONITOR
+  ════════════════════════════════════════════ -->
+  <section id="section-lifecycle" class="hidden container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto card p-8 shadow-xl">
+      <h2 class="text-2xl font-bold mb-6"><i class="fas fa-seedling text-blue-600 mr-2"></i>Crop Lifecycle Monitor</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
+        <div><label class="text-xs font-bold text-slate-400 uppercase ml-1 block mb-1">City</label>
+          <input type="text" id="city" class="border p-3 rounded-xl w-full focus:ring-2 focus:ring-blue-400 outline-none" placeholder="e.g. Mumbai"></div>
+        <div><label class="text-xs font-bold text-slate-400 uppercase ml-1 block mb-1">Crop</label>
+          <select id="currentCrop" class="border p-3 rounded-xl w-full focus:ring-2 focus:ring-blue-400 outline-none">
+            <option value="rice">Rice</option><option value="maize">Maize</option>
+            <option value="chickpea">Chickpea</option><option value="kidneybeans">Kidney Beans</option>
+            <option value="pigeonpeas">Pigeon Peas</option><option value="mothbeans">Moth Beans</option>
+            <option value="mungbean">Mung Bean</option><option value="blackgram">Black Gram</option>
+            <option value="lentil">Lentil</option><option value="pomegranate">Pomegranate</option>
+            <option value="banana">Banana</option><option value="mango">Mango</option>
+            <option value="grapes">Grapes</option><option value="watermelon">Watermelon</option>
+            <option value="muskmelon">Muskmelon</option><option value="apple">Apple</option>
+            <option value="orange">Orange</option><option value="papaya">Papaya</option>
+            <option value="coconut">Coconut</option><option value="cotton">Cotton</option>
+            <option value="jute">Jute</option><option value="coffee">Coffee</option>
+          </select></div>
+        <div><label class="text-xs font-bold text-slate-400 uppercase ml-1 block mb-1">Sowing Date</label>
+          <input type="date" id="sowingDate" class="border p-3 rounded-xl w-full focus:ring-2 focus:ring-blue-400 outline-none"></div>
+      </div>
+      <p id="lifecycleError" class="text-red-500 text-sm font-semibold hidden mb-3"></p>
+      <button onclick="getLifecycleAdvice()" id="lifecycleBtn"
+        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl transition active:scale-95">
+        <i class="fas fa-satellite-dish mr-2"></i>Check Live Status
+      </button>
+      <div id="lifecycleResult" class="hidden mt-8 space-y-4">
+        <div class="grid grid-cols-3 gap-3" id="lifecycle-stats"></div>
+        <h5 id="weatherDisplay" class="text-lg font-bold text-slate-700"></h5>
+        <div id="adviceBox" class="p-6 rounded-2xl font-semibold text-base leading-relaxed"></div>
+        <div id="progressBar" class="hidden">
+          <div class="flex justify-between text-xs font-bold text-slate-500 mb-1.5">
+            <span>🌱 Sowing</span><span id="progressLabel">0%</span><span>🌾 Harvest</span>
+          </div>
+          <div class="w-full bg-slate-200 rounded-full h-3">
+            <div id="progressFill" class="h-3 rounded-full bg-green-500 transition-all duration-700" style="width:0%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════
+       FEEDBACK
+  ════════════════════════════════════════════ -->
+  <section id="section-feedback" class="hidden container mx-auto px-4 py-8">
+    <div class="max-w-5xl mx-auto card p-8 shadow-xl space-y-6">
+      <div class="text-center">
+        <h2 class="text-3xl font-bold text-slate-800">Trusted by Farmers Across India 🌾</h2>
+        <p class="text-slate-500 mt-2">Real farmers. Real results. AI-powered accurate crop predictions.</p>
+        <div class="flex justify-center items-end gap-3 mt-6">
+          <span class="text-6xl font-extrabold text-green-700">4.9</span>
+          <div class="pb-2">
+            <div class="flex gap-1">
+              <i class="fas fa-star text-yellow-400 text-xl"></i><i class="fas fa-star text-yellow-400 text-xl"></i>
+              <i class="fas fa-star text-yellow-400 text-xl"></i><i class="fas fa-star text-yellow-400 text-xl"></i>
+              <i class="fas fa-star text-yellow-400 text-xl"></i>
+            </div>
+            <p class="text-slate-500 text-sm mt-1">Based on <span class="font-bold text-slate-700">700+</span> farmer reviews</p>
+          </div>
+        </div>
+      </div>
+      <div id="feedbackList" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4"></div>
+      <div class="border-t border-slate-100 pt-6">
+        <h3 class="text-lg font-bold text-slate-800 mb-4">Share Your Experience</h3>
+        <div class="flex gap-2 mb-4" id="starRating">
+          <i class="fas fa-star text-3xl cursor-pointer text-slate-200 hover:text-yellow-400 transition" onclick="setRating(1)"></i>
+          <i class="fas fa-star text-3xl cursor-pointer text-slate-200 hover:text-yellow-400 transition" onclick="setRating(2)"></i>
+          <i class="fas fa-star text-3xl cursor-pointer text-slate-200 hover:text-yellow-400 transition" onclick="setRating(3)"></i>
+          <i class="fas fa-star text-3xl cursor-pointer text-slate-200 hover:text-yellow-400 transition" onclick="setRating(4)"></i>
+          <i class="fas fa-star text-3xl cursor-pointer text-slate-200 hover:text-yellow-400 transition" onclick="setRating(5)"></i>
+        </div>
+        <textarea id="feedbackTextNew" rows="4" placeholder="Write your experience..."
+          class="w-full border p-3 rounded-xl focus:ring-2 focus:ring-green-400 outline-none text-sm"></textarea>
+        <button onclick="submitFeedbackNew()"
+          class="mt-3 bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-xl font-bold transition">
+          Submit Feedback
+        </button>
+        <p id="feedbackMsgNew" class="mt-3 text-green-600 font-semibold hidden">Thank you for your feedback! 🌟</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════
+       FAQ
+  ════════════════════════════════════════════ -->
+  <section id="section-faq" class="hidden container mx-auto px-4 py-8">
+    <div class="max-w-3xl mx-auto card p-8 shadow-xl">
+      <h2 class="text-3xl font-bold text-slate-800 mb-6 text-center">
+        <i class="fas fa-question-circle text-green-600 mr-2"></i>Frequently Asked Questions
+      </h2>
+      <div id="faqContainer" class="space-y-3"></div>
+    </div>
+  </section>
+
+</div><!-- /main-content -->
+
+<!-- ════════════════════════════════════════════
+     CHAT WIDGET
+════════════════════════════════════════════ -->
+<div id="chat-widget" class="fixed bottom-6 right-6 z-[200]">
+  <button onclick="toggleChat()"
+    class="bg-green-600 hover:bg-green-700 text-white w-14 h-14 rounded-full shadow-2xl flex items-center justify-center text-xl transition active:scale-90">
+    <i class="fas fa-comments" id="chat-icon"></i>
+  </button>
+  <div id="chat-box" class="hidden flex-col bg-white rounded-3xl shadow-2xl border border-slate-200 w-80 overflow-hidden"
+    style="position:absolute;bottom:68px;right:0;">
+    <div class="bg-gradient-to-r from-green-700 to-green-600 text-white px-5 py-4 font-bold flex justify-between items-center rounded-t-3xl">
+      <span><i class="fas fa-robot mr-2"></i>FarmCopilot AI</span>
+      <button onclick="toggleChat()" class="opacity-70 hover:opacity-100 text-xl leading-none">&times;</button>
+    </div>
+    <div id="chat-body" class="p-4 space-y-3 overflow-y-auto" style="height:300px;">
+      <div class="bg-green-50 text-green-800 text-sm p-3 rounded-2xl rounded-tl-none font-medium">
+        👋 Hello! I'm your FarmCopilot AI. Ask me anything about crops, soil, or weather!
+      </div>
+    </div>
+    <div class="p-3 border-t border-slate-100 flex gap-2">
+      <input id="chat-input" type="text" placeholder="Ask about crops, soil…"
+        class="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-green-400 outline-none"
+        onkeydown="if(event.key==='Enter')sendChat()">
+      <button onclick="sendChat()"
+        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition">
+        <i class="fas fa-paper-plane"></i>
+      </button>
+    </div>
+  </div>
 </div>
-                </div>
-            </section>
 
-            <section id="section-lifecycle" class="hidden">
-                <div class="max-w-4xl mx-auto bg-white p-8 rounded-3xl shadow-xl">
-                    <h2 class="text-2xl font-bold mb-6">Crop Lifecycle Monitor</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                        <input type="text" id="city" class="border p-3 rounded-xl" placeholder="Enter City (e.g. Mumbai)">
-                        <select id="currentCrop" class="border p-3 rounded-xl">
-                           <option value="rice">Rice</option>
+<!-- Google Translate element (hidden) -->
+<div id="google_translate_element" class="hidden"></div>
 
-    <option value="maize">Maize</option>
-    <option value="chickpea">Chickpea</option>
-    <option value="kidneybeans">Kidney Beans</option>
-    <option value="pigeonpeas">Pigeon Peas</option>
-    <option value="mothbeans">Moth Beans</option>
-    <option value="mungbean">Mung Bean</option>
-    <option value="blackgram">Black Gram</option>
-    <option value="lentil">Lentil</option>
-    <option value="pomegranate">Pomegranate</option>
-    <option value="banana">Banana</option>
-    <option value="mango">Mango</option>
-    <option value="grapes">Grapes</option>
-    <option value="watermelon">Watermelon</option>
-    <option value="muskmelon">Muskmelon</option>
-    <option value="apple">Apple</option>
-    <option value="orange">Orange</option>
-    <option value="papaya">Papaya</option>
-    <option value="coconut">Coconut</option>
-    <option value="cotton">Cotton</option>
-    <option value="jute">Jute</option>
-    <option value="coffee">Coffee</option>
+<!-- ════════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════════ -->
+<script>
+// ── STATE ─────────────────────────────────────────────────
+let isLoginMode   = true;
+let selectedRating = 0;
+let calendarData  = null;
+let tipIndex      = 0;
+const SECTIONS    = ['dashboard','predictor','lifecycle','feedback','faq'];
 
-                        </select>
-                        <input type="date" id="sowingDate" class="border p-3 rounded-xl">
-                    </div>
-                    <button onclick="getLifecycleAdvice()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl">Check Live Status</button>
-                    <div id="lifecycleResult" class="hidden mt-10 p-8 rounded-3xl bg-slate-50">
-                        <h5 id="weatherDisplay" class="text-xl font-bold mb-4"></h5>
-                        <div id="adviceBox" class="p-6 rounded-2xl font-bold"></div>
-                    </div>
-                </div>
-            </section>
-        </div>
-    </div>
-    <div id="chat-widget" class="fixed bottom-6 right-6 z-[100]">
-    <button onclick="toggleChat()" class="bg-green-600 hover:bg-green-700 text-white p-4 rounded-full shadow-2xl transition-all scale-110">
-        <i class="fas fa-robot text-2xl"></i>
-    </button>
+const TIPS = [
+  "Test your soil NPK before sowing — balanced nutrients can boost yield by up to 40%.",
+  "Apply Nitrogen-rich fertiliser during the early vegetative stage for maximum green growth.",
+  "Harvest in the early morning when sugar content in fruits is highest and temperatures are cool.",
+  "Drip irrigation saves up to 50% water compared to flood irrigation — try it for cotton and maize.",
+  "Intercropping legumes with cereals naturally replenishes soil Nitrogen — reducing fertiliser cost.",
+  "Store harvested grain with moisture below 14% to prevent fungal growth and aflatoxin contamination.",
+  "Use pheromone traps to monitor pest pressure early — act before the threshold causes crop loss.",
+  "Mulching retains soil moisture and reduces weed competition — especially critical in summer crops.",
+];
 
-    <div id="chat-window" class="hidden absolute bottom-20 right-0 w-80 md:w-96 bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col h-[500px]">
-        <div class="bg-green-600 p-4 text-white font-bold flex justify-between items-center">
-            <span><i class="fas fa-leaf mr-2"></i> FarmCopilot AI</span>
-            <button onclick="toggleChat()"><i class="fas fa-times"></i></button>
-        </div>
-        
-        <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-4 bg-slate-50 text-sm">
-            <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 max-w-[80%]">
-                Hello! I am your AI assistant. Ask me anything about farming, NPK, or weather!
-            </div>
-        </div>
-
-        <div class="p-4 border-t border-slate-100 bg-white">
-            <div class="flex gap-2">
-                <input type="text" id="chat-input" placeholder="Type a message..." class="flex-1 border border-slate-200 p-2 rounded-xl focus:ring-2 focus:ring-green-500 outline-none">
-                <button onclick="sendChatMessage()" class="bg-green-600 text-white p-2 px-4 rounded-xl">
-                    <i class="fas fa-paper-plane"></i>
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<section class="faq-section">
-    <style>
-        .faq-section {
-    margin-top: 40px;
-    padding: 20px;
-    background: rgba(255, 255, 255, 0.05); /* Glass effect */
-    border-radius: 15px;
-    backdrop-filter: blur(10px);
-}
-
-.section-title {
-    color: #2ecc71;
-    margin-bottom: 20px;
-    font-size: 1.5rem;
-}
-
-.faq-container {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.faq-item {
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-.faq-question {
-    width: 100%;
-    padding: 15px 20px;
-    background: rgba(6, 104, 47, 0.1);
-    color: rgb(9, 3, 3);
-    border: none;
-    text-align: left;
-    font-size: 1rem;
-    cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transition: 0.3s;
-}
-
-.faq-question:hover {
-    background: rgba(46, 204, 113, 0.2);
-}
-
-.faq-answer {
-    padding: 0 20px;
-    max-height: 0;
-    overflow: hidden;
-    background: rgba(0, 0, 0, 0.2);
-    transition: max-height 0.3s ease-out, padding 0.3s ease;
-}
-
-.faq-item.active .faq-answer {
-    max-height: 200px;
-    padding: 15px 20px;
-}
-
-.faq-item.active .fa-chevron-down {
-    transform: rotate(180deg);
-}
-    </style>
-    <h2 class="section-title"><i class="fas fa-question-circle"></i> Frequently Asked Questions</h2>
-    
-    <div class="faq-container">
-        <div class="faq-item">
-            <button class="faq-question">How accurate is the Crop Prediction? <i class="fas fa-chevron-down"></i></button>
-            <div class="faq-answer">
-                <p>The PS-HK16 system uses a <strong>Random Forest Machine Learning</strong> model trained on thousands of Indian soil samples. It currently operates at a <strong>98.2% accuracy rate</strong> for the 22 crops in our database.</p>
-            </div>
-        </div>
-
-        <div class="faq-item">
-            <button class="faq-question">Does my farm data stay private? <i class="fas fa-chevron-down"></i></button>
-            <div class="faq-answer">
-                <p>Yes. Unlike other platforms, our AI Copilot (Gemma 2) runs <strong>locally on your machine</strong> using Ollama. Your queries and soil data never leave your local system.</p>
-            </div>
-        </div>
-
-        <div class="faq-item">
-            <button class="faq-question">Where do the Mandi prices come from? <i class="fas fa-chevron-down"></i></button>
-            <div class="faq-answer">
-                <p>We fetch real-time data directly from the <strong>Govt. of India (data.gov.in)</strong> API, ensuring you get the most recent market rates for your produce.</p>
-            </div>
-        </div>
-    </div>
-</section>
-
-    <script>
-
-    function clearSoilForm() {
-
-    // Reset form inputs
-    document.getElementById('predictionForm').reset();
-
-    // Hide results section
-    document.getElementById('results').classList.add('hidden');
-
-    // Reset result values (optional but clean)
-    document.getElementById('resCrop').innerText = "";
-    document.getElementById('resDuration').innerText = "-- Days";
-    document.getElementById('resPrice').innerText = "Calculating...";
-    document.getElementById('resMonth').innerText = "Best Month to Sell: --";
-    document.getElementById('resAlert').innerText = "";
-
-}
-       
-        async function handleLogin() {
-    const user = document.getElementById('username').value;
-    const pass = document.getElementById('password').value;
-    const loginBtn = document.querySelector('#login-page button');
-
-    try {
-        const response = await fetch('/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username: user, password: pass })
-        });
-
-        const result = await response.json();
-
-        if (result.status === "success") {
-            // Personalize the dashboard with the name from the DB
-            document.querySelector('h1').innerText = result.farmer_name + "'s Field Intelligence";
-            
-            document.getElementById('login-page').classList.add('hidden');
-            document.getElementById('main-content').classList.remove('hidden');
-        } else {
-            alert(result.message);
-        }
-    } catch (error) {
-        alert("Database connection error.");
-    }
-}
-
-        function showSection(sectionId) {
-            document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
-            document.querySelectorAll('nav button').forEach(b => b.classList.remove('tab-active'));
-            document.getElementById('section-' + sectionId).classList.remove('hidden');
-            document.getElementById('nav-' + sectionId).classList.add('tab-active');
-        }
-
-       
-        document.getElementById('predictionForm').onsubmit = async (e) => {
-    e.preventDefault();
-    
-    // UI Feedback: Change button text while loading
-    const btn = e.target.querySelector('button');
-    const originalText = btn.innerText;
-    btn.innerText = "Analyzing Soil & Market...";
-    btn.disabled = true;
-
-    const data = {
-        Nitrogen:Number (document.getElementById('Nitrogen').value),
-        phosphorus:Number( document.getElementById('phosphorus').value),
-        potassium: Number(document.getElementById('potassium').value),
-        temperature: Number( document.getElementById('temperature').value),
-        humidity:Number(document.getElementById('humidity').value),
-        ph:Number( document.getElementById('ph').value),
-        rainfall: Number(document.getElementById('rainfall').value)
-    };
-
-    try {
-        const response = await fetch('/predict', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(data)
-        });
-        const result = await response.json();
-
-        // --- NEW VALIDATION CHECK STARTS HERE ---
-        if (result.error) {
-
-    // Show results section
-    document.getElementById('results').classList.remove('hidden');
-
-    // Set all fields to Undefined
-    document.getElementById('resCrop').innerText = "Undefined";
-    document.getElementById('resDuration').innerText = "Undefined";
-    document.getElementById('resPrice').innerText = "Price Unavailable";
-    document.getElementById('resMonth').innerText = "Best Month to Sell: --";
-
-    document.getElementById('resAlert').innerText = "Invalid Soil Data";
-
-    // Red alert styling
-    const alertBox = document.getElementById('alertBox');
-    alertBox.className = "inline-block px-4 py-1 rounded-full text-xs font-bold text-white bg-red-500";
-
-    btn.innerText = originalText;
-    btn.disabled = false;
-
-    return;
-}
-        // --- NEW VALIDATION CHECK ENDS HERE ---
-
-        // Reveal the results container
-        document.getElementById('results').classList.remove('hidden');
-
-        // Update UI Elements
-        document.getElementById('resCrop').innerText = result.crop;
-       document.getElementById('resAlert').innerText = result.error;
-        
-        // 1. Update Duration
-       document.getElementById('resDuration').innerText =
-    result.growth_time ? result.growth_time + " Days" : "Undefined";
-        
-        // 2. Update Price
-        if (result.price) {
-            document.getElementById('resPrice').innerText = "₹" + result.price + "/q";
-        } else {
-            document.getElementById('resPrice').innerText = "Price Unavailable";
-        }
-
-        // 3. Update Selling Month
-        document.getElementById('resMonth').innerText = "Best Month to Sell: " + (result.sell_month || "Post-Harvest");
-
-        // Set Alert Styling using your ui_status from Python
-        const alertBox = document.getElementById('alertBox');
-        // Note: Check if your backend sends 'ui_status' or 'status'
-        const statusColor = result.ui_status || result.status; 
-        
-        alertBox.className = "inline-block px-4 py-1 rounded-full text-xs font-bold text-white " + 
-            (statusColor === 'danger' ? 'bg-red-500' : statusColor === 'warning' ? 'bg-orange-500' : 'bg-green-600');
-
-    } catch (error) {
-        alert("Prediction failed. Please check your backend connection.");
-    } finally {
-        btn.innerText = originalText;
-        btn.disabled = false;
-    }
-};
-   async function getLifecycleAdvice() {
-    const city = document.getElementById('city').value;
-    const crop = document.getElementById('currentCrop').value;
-    const date = document.getElementById('sowingDate').value;
-    const btn = document.querySelector("button[onclick='getLifecycleAdvice()']");
-
-    if (!city || !date) { 
-        alert("Please fill all fields!"); 
-        return; 
-    }
-
-    const originalBtnText = btn.innerText;
-    btn.innerText = "Fetching Live Weather...";
-    btn.disabled = true;
-    try {
-        
-        const response = await fetch('/lifecycle-advice', { 
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                city: city, 
-                crop: crop, 
-                sowing_date: date 
-            })
-        });
-        
-        const result = await response.json();
-
-        if (result.error) {
-            alert("⚠️ " + result.error);
-        } else {
-            document.getElementById('lifecycleResult').classList.remove('hidden');
-
-            document.getElementById('weatherDisplay').innerHTML = `
-                <div class="flex items-center gap-2">
-                    <i class="fas fa-temperature-high text-orange-500"></i>
-                    <span>${result.current_weather}</span>
-                    <span class="text-xs text-slate-400 font-normal ml-2">(${result.days_old} days since sowing)</span>
-                </div>`;
-
-            document.getElementById('dash-city-name').innerText = city.toUpperCase();
-
-            const adviceBox = document.getElementById('adviceBox');
-            adviceBox.innerText = result.advice;
-
-            let colorClasses = "p-6 rounded-2xl font-bold border-l-4 ";
-            
-            if (result.advice.includes("ALERT") || result.advice.includes("OVERDUE") || result.advice.includes("❌")) {
-                colorClasses += "bg-red-100 text-red-700 border-red-500";
-            } else if (result.advice.includes("READY") || result.advice.includes("✅")) {
-                colorClasses += "bg-blue-100 text-blue-700 border-blue-500";
-            } else {
-                colorClasses += "bg-green-100 text-green-700 border-green-500";
-            }
-            adviceBox.className = colorClasses;
-        }
-    } catch (e) {
-        console.error(e);
-        alert("Connection lost. Is app.py running?");
-    } finally {
-        btn.innerText = originalBtnText;
-        btn.disabled = false;
-    }
-}     
-        let isLoginMode = true;
+// ── AUTH ──────────────────────────────────────────────────
 function toggleAuthMode() {
-    isLoginMode = !isLoginMode;
-    document.getElementById('auth-title').innerText = isLoginMode ? "Farmer Login" : "Register Farmer";
-    document.getElementById('auth-btn').innerText = isLoginMode ? "Access Dashboard" : "Register Now";
-    document.getElementById('toggle-text').innerText = isLoginMode ? "New farmer?" : "Already registered?";
-    document.getElementById('toggle-link').innerText = isLoginMode ? "Create Account" : "Login Here";
-    document.getElementById('name-field').classList.toggle('hidden');
+  isLoginMode = !isLoginMode;
+  document.getElementById('auth-title').innerText    = isLoginMode ? 'Farmer Login' : 'Create Account';
+  document.getElementById('auth-btn').innerHTML      = isLoginMode ? '<i class="fas fa-sign-in-alt mr-2"></i>Access Dashboard' : '<i class="fas fa-user-plus mr-2"></i>Register';
+  document.getElementById('toggle-text').innerText   = isLoginMode ? 'New farmer?' : 'Already registered?';
+  document.getElementById('toggle-link').innerText   = isLoginMode ? 'Create Account' : 'Login';
+  document.getElementById('name-field').classList.toggle('hidden', isLoginMode);
+  document.getElementById('auth-error').classList.add('hidden');
 }
+
 async function handleAuth() {
-    const user = document.getElementById('username').value;
-    const pass = document.getElementById('password').value;
-    const fullName = document.getElementById('reg-fullname').value;
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value.trim();
+  document.getElementById('auth-error').classList.add('hidden');
+  if (!username || !password) { showAuthError('Please fill in all fields.'); return; }
 
-    const endpoint = isLoginMode ? '/login' : '/register';
-    const payload = isLoginMode 
-        ? { username: user, password: pass } 
-        : { username: user, password: pass, farmer_name: fullName };
+  if (isLoginMode) {
     try {
-        const response = await fetch(endpoint, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        const result = await response.json();
-
-        if (result.status === "success") {
-            if (isLoginMode) {
-                document.querySelector('h1').innerText = result.farmer_name + "'s Field Intelligence";
-                document.getElementById('login-page').classList.add('hidden');
-                document.getElementById('main-content').classList.remove('hidden');
-            } else {
-                alert("Registration successful! Please login.");
-                toggleAuthMode(); // Switch back to login
-            }
-        } else {
-            alert(result.message);
-        }
-    } catch (e) {
-        alert("Server error. Make sure app.py is running.");
-    }
+      const res  = await fetch('/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username,password}) });
+      const data = await res.json();
+      if (data.status === 'success') {
+        document.getElementById('farmer-name-display').innerText = data.farmer_name || username;
+        document.getElementById('login-page').classList.add('hidden');
+        document.getElementById('main-content').classList.remove('hidden');
+        initDashboard();
+      } else showAuthError(data.message || 'Invalid credentials.');
+    } catch { showAuthError('Server unreachable. Please try again.'); }
+  } else {
+    const fullname = document.getElementById('reg-fullname').value.trim();
+    if (!fullname) { showAuthError('Please enter your full name.'); return; }
+    try {
+      const res  = await fetch('/register', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username,password,farmer_name:fullname}) });
+      const data = await res.json();
+      if (data.status === 'success') {
+        toggleAuthMode();
+        const el = document.getElementById('auth-error');
+        el.innerText = '✅ Registered! Please login.';
+        el.className = 'text-green-600 text-sm font-semibold';
+        el.classList.remove('hidden');
+      } else showAuthError(data.message || 'Registration failed.');
+    } catch { showAuthError('Server unreachable.'); }
+  }
 }
+
+function showAuthError(msg) {
+  const el = document.getElementById('auth-error');
+  el.innerText = msg;
+  el.className = 'text-red-500 text-sm font-semibold';
+  el.classList.remove('hidden');
+}
+
+// ── NAVIGATION ────────────────────────────────────────────
+function showSection(name) {
+  SECTIONS.forEach(s => {
+    document.getElementById('section-' + s).classList.add('hidden');
+    const nav = document.getElementById('nav-' + s);
+    if (nav) { nav.classList.remove('tab-active','bg-green-50'); nav.classList.add('hover:bg-slate-100'); }
+  });
+  document.getElementById('section-' + name).classList.remove('hidden');
+  const active = document.getElementById('nav-' + name);
+  if (active) { active.classList.add('tab-active','bg-green-50'); active.classList.remove('hover:bg-slate-100'); }
+}
+
+// ── DASHBOARD INIT ────────────────────────────────────────
+function initDashboard() {
+  setHeroDate();
+  setDailyTip();
+  loadSowingCalendar();
+  loadMarketTicker();
+  loadFeedback();
+  loadFAQ();
+}
+
+function setHeroDate() {
+  const d = new Date();
+  document.getElementById('hero-date').innerText =
+    d.toLocaleDateString('en-IN', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+}
+
+function setDailyTip() {
+  document.getElementById('daily-tip').innerText = TIPS[tipIndex % TIPS.length];
+}
+function nextTip() {
+  tipIndex++;
+  document.getElementById('daily-tip').innerText = TIPS[tipIndex % TIPS.length];
+}
+
+// ── MARKET TICKER ─────────────────────────────────────────
+async function loadMarketTicker() {
+  try {
+    const res  = await fetch('/market-prices');
+    const data = await res.json();
+    const track = document.getElementById('tickerTrack');
+    if (!data.prices) return;
+    const makeItems = () => data.prices.map(p =>
+      `<span class="ticker-item flex items-center gap-3 px-6 py-1 border-r border-green-700 text-sm">
+        <span class="font-bold text-green-200">${p.crop}</span>
+        <span class="text-white font-extrabold">₹${Number(p.price).toLocaleString('en-IN')}/qtl</span>
+        <span class="text-green-400 text-xs">▲</span>
+      </span>`
+    ).join('');
+    track.innerHTML = makeItems() + makeItems(); // doubled for seamless loop
+  } catch {
+    document.getElementById('tickerTrack').innerHTML =
+      '<span class="px-6 text-green-300 text-sm">Live Mandi prices loading…</span>';
+  }
+}
+
+// ── DASHBOARD WEATHER ─────────────────────────────────────
+async function fetchDashboardWeather() {
+  const city = document.getElementById('weather-city-input').value.trim();
+  if (!city) return;
+  const result = document.getElementById('weather-result');
+  result.innerHTML = '<div class="text-center py-4 text-blue-200 text-sm"><i class="fas fa-spinner fa-spin mr-2"></i>Fetching...</div>';
+  try {
+    const res  = await fetch('/dashboard-weather', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({city}) });
+    const d    = await res.json();
+    if (d.error) { result.innerHTML = `<p class="text-red-300 text-sm text-center">${d.error}</p>`; return; }
+    const icons = {Clear:'☀️',Clouds:'☁️',Rain:'🌧️',Drizzle:'🌦️',Thunderstorm:'⛈️',Snow:'❄️',Mist:'🌫️',Fog:'🌫️',Haze:'🌫️'};
+    const icon  = icons[d.condition] || '🌤️';
+    result.innerHTML = `
+      <div class="flex items-center gap-4 mb-3">
+        <span class="text-5xl">${icon}</span>
+        <div>
+          <p class="text-3xl font-extrabold">${d.temp}°C</p>
+          <p class="text-blue-200 text-sm">${d.desc}</p>
+        </div>
+      </div>
+      <div class="grid grid-cols-3 gap-2 text-center text-xs">
+        <div class="bg-white/10 rounded-xl py-2">
+          <p class="text-blue-200">Feels like</p><p class="font-bold">${d.feels_like}°C</p>
+        </div>
+        <div class="bg-white/10 rounded-xl py-2">
+          <p class="text-blue-200">Humidity</p><p class="font-bold">${d.humidity}%</p>
+        </div>
+        <div class="bg-white/10 rounded-xl py-2">
+          <p class="text-blue-200">Wind</p><p class="font-bold">${d.wind} m/s</p>
+        </div>
+      </div>`;
+  } catch {
+    result.innerHTML = '<p class="text-red-300 text-sm text-center">Could not reach server.</p>';
+  }
+}
+
+// ── SOWING CALENDAR ───────────────────────────────────────
+let calView = 'now';
+async function loadSowingCalendar() {
+  try {
+    const res  = await fetch('/sowing-calendar');
+    calendarData = await res.json();
+    renderCalendar('now');
+  } catch {
+    document.getElementById('calendar-content').innerHTML = '<p class="text-slate-400 text-sm">Could not load calendar.</p>';
+  }
+}
+
+function showCalendar(view) {
+  calView = view;
+  document.getElementById('cal-now').className = view==='now'
+    ? 'px-3 py-1.5 bg-green-600 text-white rounded-lg transition text-xs font-bold'
+    : 'px-3 py-1.5 bg-slate-100 text-slate-600 rounded-lg transition text-xs font-bold';
+  document.getElementById('cal-next').className = view==='next'
+    ? 'px-3 py-1.5 bg-green-600 text-white rounded-lg transition text-xs font-bold'
+    : 'px-3 py-1.5 bg-slate-100 text-slate-600 rounded-lg transition text-xs font-bold';
+  if (calendarData) renderCalendar(view);
+}
+
+function renderCalendar(view) {
+  const crops = view === 'now' ? calendarData.sow_now : calendarData.sow_next;
+  const month = view === 'now' ? calendarData.this_month : calendarData.next_month;
+  const pillClass = {grain:'pill-grain',pulse:'pill-pulse',fruit:'pill-fruit',comm:'pill-comm'};
+
+  const content = document.getElementById('calendar-content');
+  if (!crops || crops.length === 0) {
+    content.innerHTML = `<p class="text-slate-400 text-sm w-full">No crops typically sown in ${month}.</p>`;
+    document.getElementById('calendar-detail').classList.add('hidden');
+    return;
+  }
+  content.innerHTML = crops.map(c =>
+    `<span class="crop-pill ${pillClass[c.type]||'pill-grain'}" title="₹${c.price}/qtl · ${c.growth} days">
+      ${c.crop}
+    </span>`
+  ).join('');
+
+  const tbody = document.getElementById('calendar-table-body');
+  tbody.innerHTML = crops.map(c =>
+    `<tr class="hover:bg-slate-50 transition">
+      <td class="py-2.5 font-bold text-slate-800 text-sm">${c.crop}</td>
+      <td class="py-2.5"><span class="crop-pill ${pillClass[c.type]||'pill-grain'}">${c.type}</span></td>
+      <td class="py-2.5 text-slate-600 text-sm">${c.growth} days</td>
+      <td class="py-2.5 font-bold text-green-700 text-sm">₹${Number(c.price).toLocaleString('en-IN')}</td>
+    </tr>`
+  ).join('');
+  document.getElementById('calendar-detail').classList.remove('hidden');
+}
+
+// ── CROP COMPARATOR ───────────────────────────────────────
+async function runComparison() {
+  const crop1 = document.getElementById('comp-crop1').value;
+  const crop2 = document.getElementById('comp-crop2').value;
+  const result = document.getElementById('compare-result');
+  result.innerHTML = '<div class="text-center py-4 text-slate-400 text-sm"><i class="fas fa-spinner fa-spin mr-2"></i>Comparing...</div>';
+  try {
+    const res = await fetch(`/compare-crops?crop1=${crop1}&crop2=${crop2}`);
+    const d   = await res.json();
+    if (d.error) { result.innerHTML = `<p class="text-red-500 text-sm">${d.error}</p>`; return; }
+    const c1 = d.crop1, c2 = d.crop2;
+    const better = (v1, v2, higher=true) => {
+      if (v1 === v2) return ['',''];
+      const win = higher ? (v1 > v2 ? [0,1] : [1,0]) : (v1 < v2 ? [0,1] : [1,0]);
+      return ['compare-win','compare-lose'].map((_,i) => win[0]===i ? 'compare-win' : 'compare-lose');
+    };
+    const [p1c,p2c] = better(c1.price, c2.price);
+    const [g1c,g2c] = better(c1.growth, c2.growth, false);
+    result.innerHTML = `
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead><tr class="text-xs font-bold text-slate-400 border-b border-slate-100">
+            <th class="pb-2 text-left">Metric</th>
+            <th class="pb-2 text-center">${c1.name}</th>
+            <th class="pb-2 text-center">${c2.name}</th>
+          </tr></thead>
+          <tbody class="divide-y divide-slate-50">
+            <tr><td class="py-2.5 text-slate-500 font-medium">Type</td>
+              <td class="py-2.5 text-center font-semibold">${c1.type}</td>
+              <td class="py-2.5 text-center font-semibold">${c2.type}</td></tr>
+            <tr><td class="py-2.5 text-slate-500 font-medium">Growth Duration</td>
+              <td class="py-2.5 text-center font-bold rounded-l ${g1c}">${c1.growth} days</td>
+              <td class="py-2.5 text-center font-bold rounded-r ${g2c}">${c2.growth} days</td></tr>
+            <tr><td class="py-2.5 text-slate-500 font-medium">Mandi Price</td>
+              <td class="py-2.5 text-center font-bold ${p1c}">₹${Number(c1.price).toLocaleString('en-IN')}</td>
+              <td class="py-2.5 text-center font-bold ${p2c}">₹${Number(c2.price).toLocaleString('en-IN')}</td></tr>
+            <tr><td class="py-2.5 text-slate-500 font-medium">Best Sell Month</td>
+              <td class="py-2.5 text-center">${c1.sell_month}</td>
+              <td class="py-2.5 text-center">${c2.sell_month}</td></tr>
+            <tr><td class="py-2.5 text-slate-500 font-medium">Min Temp</td>
+              <td class="py-2.5 text-center">${c1.min_temp}°C</td>
+              <td class="py-2.5 text-center">${c2.min_temp}°C</td></tr>
+            <tr><td class="py-2.5 text-slate-500 font-medium">Max Temp</td>
+              <td class="py-2.5 text-center">${c1.max_temp}°C</td>
+              <td class="py-2.5 text-center">${c2.max_temp}°C</td></tr>
+            <tr><td class="py-2.5 text-slate-500 font-medium">Shelf Life</td>
+              <td class="py-2.5 text-center">${c1.life} days</td>
+              <td class="py-2.5 text-center">${c2.life} days</td></tr>
+          </tbody>
+        </table>
+        <p class="text-xs text-slate-400 mt-3"><span class="text-green-600 font-bold">Green</span> = better value for that metric.</p>
+      </div>`;
+  } catch {
+    result.innerHTML = '<p class="text-red-500 text-sm">Could not reach server.</p>';
+  }
+}
+
+// ── SOIL PREDICTOR ────────────────────────────────────────
+async function submitPrediction(e) {
+  e.preventDefault();
+  const errEl = document.getElementById('soilError');
+  errEl.classList.add('hidden');
+  const btn = document.getElementById('predictBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Analysing…';
+
+  const payload = {
+    Nitrogen:    parseFloat(document.getElementById('Nitrogen').value),
+    phosphorus:  parseFloat(document.getElementById('phosphorus').value),
+    potassium:   parseFloat(document.getElementById('potassium').value),
+    ph:          parseFloat(document.getElementById('ph').value),
+    temperature: parseFloat(document.getElementById('temperature').value),
+    humidity:    parseFloat(document.getElementById('humidity').value),
+    rainfall:    parseFloat(document.getElementById('rainfall').value),
+  };
+
+  try {
+    const res  = await fetch('/predict', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+    const data = await res.json();
+    if (data.error) {
+      errEl.innerText = '⚠️ ' + data.error; errEl.classList.remove('hidden');
+    } else {
+      document.getElementById('resCrop').innerText     = data.crop;
+      document.getElementById('resDuration').innerText = data.growth_time + ' Days';
+      document.getElementById('resPrice').innerText    = '₹' + Number(data.price).toLocaleString('en-IN') + '/qtl';
+      document.getElementById('resMonth').innerText    = 'Best Month to Sell: ' + data.sell_month;
+      document.getElementById('resAlert').innerText    = data.alert;
+      const alertBox = document.getElementById('alertBox');
+      alertBox.className = 'inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold text-white alert-' + (data.ui_status||'success');
+      document.getElementById('results').classList.remove('hidden');
+      document.getElementById('results').scrollIntoView({behavior:'smooth',block:'nearest'});
+    }
+  } catch {
+    errEl.innerText = '⚠️ Could not reach server. Ensure the FastAPI backend is running.';
+    errEl.classList.remove('hidden');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = 'Generate Action Plan';
+  }
+}
+
+function clearSoilForm() {
+  document.getElementById('predictionForm').reset();
+  document.getElementById('results').classList.add('hidden');
+  document.getElementById('soilError').classList.add('hidden');
+}
+
+// ── LIFECYCLE ─────────────────────────────────────────────
+async function getLifecycleAdvice() {
+  const city       = document.getElementById('city').value.trim();
+  const crop       = document.getElementById('currentCrop').value;
+  const sowingDate = document.getElementById('sowingDate').value;
+  const errEl      = document.getElementById('lifecycleError');
+  errEl.classList.add('hidden');
+  if (!city || !sowingDate) { errEl.innerText='Please enter city and sowing date.'; errEl.classList.remove('hidden'); return; }
+
+  const btn = document.getElementById('lifecycleBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Fetching live data…';
+
+  try {
+    const res  = await fetch('/lifecycle-advice', { method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({city, crop, sowing_date:sowingDate}) });
+    const data = await res.json();
+    if (data.error) {
+      errEl.innerText = '⚠️ ' + data.error; errEl.classList.remove('hidden');
+      document.getElementById('lifecycleResult').classList.add('hidden');
+    } else {
+      document.getElementById('weatherDisplay').innerText = `🌡 ${city}: ${data.current_weather}`;
+      // mini stat cards
+      document.getElementById('lifecycle-stats').innerHTML = `
+        <div class="bg-blue-50 rounded-2xl p-4 text-center">
+          <p class="text-xs text-blue-400 font-bold uppercase">Days Old</p>
+          <p class="text-2xl font-extrabold text-blue-700 mt-1">${data.days_old}</p>
+        </div>
+        <div class="bg-green-50 rounded-2xl p-4 text-center">
+          <p class="text-xs text-green-400 font-bold uppercase">Progress</p>
+          <p class="text-2xl font-extrabold text-green-700 mt-1">${Math.min(data.progress,100)}%</p>
+        </div>
+        <div class="bg-slate-50 rounded-2xl p-4 text-center">
+          <p class="text-xs text-slate-400 font-bold uppercase">Humidity</p>
+          <p class="text-2xl font-extrabold text-slate-700 mt-1">${data.humidity??'--'}%</p>
+        </div>`;
+
+      const adviceBox = document.getElementById('adviceBox');
+      adviceBox.innerText = data.advice;
+      const txt = data.advice;
+      adviceBox.className = 'p-6 rounded-2xl font-semibold text-base leading-relaxed ';
+      if      (txt.includes('❌')||txt.includes('🚨')) adviceBox.classList.add('advice-danger');
+      else if (txt.includes('⚠️'))                      adviceBox.classList.add('advice-warning');
+      else if (txt.includes('✅'))                       adviceBox.classList.add('advice-success');
+      else                                               adviceBox.classList.add('advice-info');
+
+      const progress = Math.min(data.progress, 100);
+      document.getElementById('progressLabel').innerText = progress + '%';
+      document.getElementById('progressFill').style.width = progress + '%';
+      document.getElementById('progressBar').classList.remove('hidden');
+      document.getElementById('lifecycleResult').classList.remove('hidden');
+      document.getElementById('lifecycleResult').scrollIntoView({behavior:'smooth',block:'nearest'});
+    }
+  } catch {
+    errEl.innerText='⚠️ Could not reach server.'; errEl.classList.remove('hidden');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-satellite-dish mr-2"></i>Check Live Status';
+  }
+}
+
+// ── FEEDBACK ──────────────────────────────────────────────
+const preloadedReviews = [
+  { name:'Ramesh Patel',   location:'Gujarat',          stars:5, text:'Soil predictor saved my entire crop season. Suggested cotton exactly when mandi prices peaked!' },
+  { name:'Sunita Devi',    location:'Bihar',             stars:5, text:'Weather advice for my rice fields is spot-on. Avoided a fungal outbreak last monsoon.' },
+  { name:'Arjun Reddy',    location:'Andhra Pradesh',    stars:5, text:'NPK insights helped me cut fertiliser cost by 25%. Amazing tool for small farmers.' },
+  { name:'Meena Kumari',   location:'Rajasthan',         stars:4, text:'Lifecycle monitor is very useful. I wish it had pest alerts too, but overall fantastic.' },
+  { name:'Harpreet Singh', location:'Punjab',            stars:5, text:'Used it for wheat and got perfect harvest window advice. Sold at ₹2,200/qtl!' },
+  { name:'Kavitha Nair',   location:'Kerala',            stars:5, text:'Coconut lifecycle advice was perfect. The weather alert saved my harvest from unexpected rain.' },
+];
+
+function renderStars(n) {
+  return Array.from({length:5},(_,i)=>`<i class="fas fa-star ${i<n?'text-yellow-400':'text-slate-200'}"></i>`).join('');
+}
+
+function loadFeedback() {
+  document.getElementById('feedbackList').innerHTML = preloadedReviews.map(r=>`
+    <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100">
+      <div class="flex justify-between items-start mb-3">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 bg-green-100 rounded-full flex items-center justify-center text-green-700 font-bold text-sm">
+            ${r.name[0]}
+          </div>
+          <div><p class="font-bold text-slate-800 text-sm">${r.name}</p>
+            <p class="text-xs text-slate-400">${r.location}</p></div>
+        </div>
+        <div class="flex gap-0.5">${renderStars(r.stars)}</div>
+      </div>
+      <p class="text-slate-600 text-sm">${r.text}</p>
+    </div>`).join('');
+}
+
+function setRating(val) {
+  selectedRating = val;
+  document.querySelectorAll('#starRating i').forEach((s,i)=>{
+    s.classList.toggle('text-yellow-400', i<val);
+    s.classList.toggle('text-slate-200',  i>=val);
+  });
+}
+
+function submitFeedbackNew() {
+  const text = document.getElementById('feedbackTextNew').value.trim();
+  if (!text) { alert('Please write your feedback first.'); return; }
+  const stars = selectedRating || 5;
+  const card  = document.createElement('div');
+  card.className = 'bg-green-50 p-5 rounded-2xl border border-green-100';
+  card.innerHTML = `
+    <div class="flex justify-between items-start mb-3">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 bg-green-600 rounded-full flex items-center justify-center text-white font-bold text-sm">Y</div>
+        <div><p class="font-bold text-slate-800 text-sm">You</p><p class="text-xs text-slate-400">Just now</p></div>
+      </div>
+      <div class="flex gap-0.5">${renderStars(stars)}</div>
+    </div>
+    <p class="text-slate-600 text-sm">${text}</p>`;
+  document.getElementById('feedbackList').prepend(card);
+  document.getElementById('feedbackTextNew').value = '';
+  setRating(0);
+  const msg = document.getElementById('feedbackMsgNew');
+  msg.classList.remove('hidden');
+  setTimeout(()=>msg.classList.add('hidden'), 3000);
+}
+
+// ── FAQ ───────────────────────────────────────────────────
+const faqData = [
+  {q:'What is FarmCopilot PS-HK16?', a:'FarmCopilot PS-HK16 is an AI-powered smart farming dashboard that predicts the best crop based on your soil data, monitors crop lifecycle with live weather, and provides Mandi price forecasts.'},
+  {q:'How does the Soil Predictor work?', a:'Enter your soil NPK values, pH, temperature, humidity, and rainfall. Our machine learning model analyses these parameters and recommends the most suitable crop along with growth duration and market price.'},
+  {q:'What is NPK?', a:'NPK stands for Nitrogen (N), Phosphorus (P), and Potassium (K) — the three primary nutrients plants need. Balanced NPK levels ensure healthy growth and high yields.'},
+  {q:'How accurate are the price forecasts?', a:"Prices are fetched live from the government's Agmarknet API when available. Fallback values are based on recent MSP data and are updated periodically."},
+  {q:'Can I use this without internet?', a:'The dashboard requires an internet connection for live weather data, Mandi prices, and the AI chat assistant. Core ML predictions run on the backend server.'},
+  {q:'How does the Lifecycle Monitor help?', a:'Enter your city, crop, and sowing date. The system fetches live weather and tells you the current growth stage, any temperature stress, and the ideal harvest window.'},
+  {q:'Is my data safe?', a:'Yes. Your data is stored locally on the server and is not shared with any third parties.'},
+  {q:'Which crops are supported?', a:'We support 22 crops including rice, maize, chickpea, kidney beans, pigeon peas, mung bean, black gram, lentil, pomegranate, banana, mango, grapes, watermelon, apple, coconut, cotton, jute, and coffee.'},
+  {q:'How do I reset my password?', a:'Currently, password reset must be done by the admin via the database. Contact your system administrator with your Farmer ID.'},
+  {q:'What language support is available?', a:'FarmCopilot supports English, Hindi (हिन्दी), Odia (ଓଡ଼ିଆ), and Telugu (తెలుగు) via Google Translate integration.'},
+  {q:'What is the Crop Comparator?', a:'The Crop Comparator lets you compare two crops side-by-side across price, growth duration, temperature range, and shelf life — helping you make an informed choice based on your conditions.'},
+  {q:'What does the Sowing Calendar show?', a:'The Sowing Calendar shows which crops are ideal to sow in the current and next month, with their expected growth duration and Mandi price, so you can plan ahead.'},
+];
+
+function loadFAQ() {
+  document.getElementById('faqContainer').innerHTML = faqData.map((item,i)=>`
+    <div class="faq-item border border-slate-200 rounded-2xl overflow-hidden" id="faq-${i}">
+      <button onclick="toggleFAQ(${i})"
+        class="w-full text-left px-6 py-4 font-bold text-slate-800 flex justify-between items-center hover:bg-slate-50 transition text-sm">
+        <span>${item.q}</span>
+        <i class="fas fa-plus faq-icon text-green-600 ml-3 flex-shrink-0 text-xs"></i>
+      </button>
+      <div class="faq-answer px-6 pb-4 text-slate-600 text-sm leading-relaxed">${item.a}</div>
+    </div>`).join('');
+}
+
+function toggleFAQ(i) { document.getElementById('faq-'+i).classList.toggle('open'); }
+
+// ── CHAT ──────────────────────────────────────────────────
 function toggleChat() {
-    const window = document.getElementById('chat-window');
-    window.classList.toggle('hidden');
-}
-async function sendChatMessage() {
-    const input = document.getElementById('chat-input');
-    const message = input.value.trim();
-    if (!message) return;
-
-    const chatMessages = document.getElementById('chat-messages');
-
-    // 1. Add User Message
-    chatMessages.innerHTML += `
-        <div class="bg-green-100 p-3 rounded-2xl shadow-sm self-end ml-auto max-w-[80%] text-green-900">
-            ${message}
-        </div>
-    `;
-    
-    const thinkingId = "thinking-" + Date.now();
-    chatMessages.innerHTML += `
-        <div id="${thinkingId}" class="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 max-w-[80%] italic text-slate-400">
-            FarmCopilot is thinking...
-        </div>
-    `;   
-    input.value = "";
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-
-    try {
-        const response = await fetch('/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: message })
-        });
-        const data = await response.json();
-
-        document.getElementById(thinkingId).remove();
-        chatMessages.innerHTML += `
-            <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 max-w-[80%]">
-                ${data.reply}
-            </div>
-        `;
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-    } catch (e) {
-        document.getElementById(thinkingId).innerText = "Connection lost. Check app.py.";
-    }
-}
-document.getElementById('chat-input')?.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') sendChatMessage();
-});
-
-// document.querySelectorAll('.faq-question').forEach(button => {
-//     button.addEventListener('click', () => {
-//         const faqItem = button.parentElement;
-//         faqItem.classList.toggle('active');
-//     });
-// });
-let totalRatings = 742;
-let currentAverage = 4.9;
-let hasRated = false;
-let hasGivenFeedback = false;
-
-function rateApp(stars) {
-
-    const starElements = document.querySelectorAll("#starContainer span");
-
-    starElements.forEach((star, index) => {
-        star.textContent = index < stars ? "★" : "☆";
-    });
-
-    if (!hasRated) {
-        currentAverage =
-            ((currentAverage * totalRatings) + stars) / (totalRatings + 1);
-        totalRatings += 1;
-        hasRated = true;
-    }
-
-    document.getElementById("avgRating").innerText =
-        currentAverage.toFixed(1);
-    document.getElementById("totalRatings").innerText =
-        totalRatings;
+  const box  = document.getElementById('chat-box');
+  const icon = document.getElementById('chat-icon');
+  const open = box.classList.contains('hidden');
+  box.classList.toggle('hidden', !open);
+  box.style.display = open ? 'flex' : 'none';
+  icon.className = open ? 'fas fa-times' : 'fas fa-comments';
 }
 
-function submitFeedback() {
-
-    const feedback = document.getElementById("feedbackText").value.trim();
-
-    if (!feedback) {
-        alert("Please write your feedback before submitting.");
-        return;
-    }
-
-    if (hasGivenFeedback) {
-        alert("You have already submitted feedback.");
-        return;
-    }
-
-    // Show thank you message
-    document.getElementById("feedbackMsg").classList.remove("hidden");
-
-    // Optional: clear textarea
-    document.getElementById("feedbackText").value = "";
-
-    hasGivenFeedback = true;
+async function sendChat() {
+  const input  = document.getElementById('chat-input');
+  const msg    = input.value.trim();
+  if (!msg) return;
+  appendChatMsg(msg, 'user');
+  input.value = '';
+  const typing = appendChatMsg('…', 'bot', true);
+  try {
+    const res  = await fetch('/chat', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({message:msg}) });
+    const data = await res.json();
+    typing.innerText = data.reply || 'Sorry, I could not respond.';
+  } catch { typing.innerText = '⚠️ Cannot reach AI. Ensure Ollama is running locally.'; }
+  scrollChatBottom();
 }
-    </script>
-    <div id="google_translate_element" style="display:none;"></div>
 
-<!-- Google Init Function -->
-<script>
-    // --- FAQ TOGGLE ---
-    document.querySelectorAll('.faq-question').forEach(button => {
-        button.addEventListener('click', () => {
-            button.parentElement.classList.toggle('active');
-        });
-    }); 
-function googleTranslateElementInit() {
-    new google.translate.TranslateElement({
-        pageLanguage: 'en',
-        includedLanguages: 'en,hi,or,te',
-        autoDisplay: false
-    }, 'google_translate_element');
+function appendChatMsg(text, role, ret=false) {
+  const body = document.getElementById('chat-body');
+  const div  = document.createElement('div');
+  div.className = role==='user'
+    ? 'bg-green-600 text-white text-sm p-3 rounded-2xl rounded-tr-none ml-auto max-w-[80%] font-medium'
+    : 'bg-slate-100 text-slate-800 text-sm p-3 rounded-2xl rounded-tl-none mr-auto max-w-[80%] font-medium';
+  div.innerText = text;
+  body.appendChild(div);
+  scrollChatBottom();
+  return ret ? div : undefined;
 }
-</script>
 
-<!-- Google Script (LOAD ONLY ONCE) -->
-<script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+function scrollChatBottom() {
+  const b = document.getElementById('chat-body');
+  b.scrollTop = b.scrollHeight;
+}
 
-<!-- Your Custom Function -->
-<script>
+// ── GOOGLE TRANSLATE ──────────────────────────────────────
 function translateLanguage(lang) {
-
-    const interval = setInterval(function () {
-
-        const select = document.querySelector(".goog-te-combo");
-
-        if (select) {
-            select.value = lang;
-            select.dispatchEvent(new Event("change"));
-            clearInterval(interval);
-        }
-
-    }, 500);
-
+  if (lang==='en') { location.reload(); return; }
+  if (!document.querySelector('script[src*="translate.google.com"]')) {
+    const s = document.createElement('script');
+    s.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateInit';
+    document.body.appendChild(s);
+  }
+  window._pendingLang = lang;
+  if (window.google && window.google.translate) doTranslate(lang);
 }
+function googleTranslateInit() {
+  new google.translate.TranslateElement({pageLanguage:'en'},'google_translate_element');
+  if (window._pendingLang) doTranslate(window._pendingLang);
+}
+function doTranslate(lang) {
+  const sel = document.querySelector('.goog-te-combo');
+  if (sel) { sel.value=lang; sel.dispatchEvent(new Event('change')); }
+}
+
+// ── INIT ──────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  loadFAQ();
+  loadFeedback();
+});
 </script>
 </body>
 </html>
