@@ -614,5 +614,4 @@ async def register(data: RegisterData):
 #         return {"reply": response.text}
 #     except Exception as e:
 #         print(f"AI Error: {e}") # This prints the real error in your VS Code terminal
-
 #         return {"reply": "I'm having trouble connecting to my brain. Please check the API key!"}
