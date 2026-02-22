@@ -81,6 +81,11 @@ class="px-3 py-2 border rounded-lg font-semibold">
 
         <div class="container mx-auto px-4 py-8">
             <section id="section-dashboard" class="space-y-8">
+               
+        </div>
+    </div>
+
+</section>
                 <div class="flex flex-col md:flex-row justify-between items-end gap-4 border-b pb-6 border-slate-200">
                     <div>
                         <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight">Field Intelligence</h1>
@@ -129,7 +134,7 @@ class="px-3 py-2 border rounded-lg font-semibold">
                             </div>
                         </div>
                     </div>
-                </div>
+                </div><br><br>
 
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div onclick="showSection('predictor')" class="lg:col-span-2 relative overflow-hidden group cursor-pointer bg-green-900 rounded-[2.5rem] shadow-2xl h-[400px]">
@@ -179,7 +184,106 @@ class="px-3 py-2 border rounded-lg font-semibold">
                         </div>
                     </div>
                 </div>
-            </section>
+            </section><br><br>
+             <div class="bg-green-700 text-white py-6 text-center">
+    <h3 class="text-xl font-semibold">
+        700+ Farmers | 4.9/5 Average Rating
+    </h3>
+</div>
+                <section id="section-testimonials" class="py-16 bg-slate-50">
+
+    <div class="max-w-6xl mx-auto px-6 text-center">
+        <h2 class="text-3xl font-bold text-slate-800">
+            Trusted by 700+ Farmers Across India 🌾
+        </h2>
+        <p class="mt-3 text-slate-600">
+            Real farmers. Real results. AI-powered accurate crop decisions.
+        </p>
+
+        <div class="grid md:grid-cols-3 gap-8 mt-12">
+
+            <!-- Card 1 -->
+            <div class="bg-white p-6 rounded-2xl shadow-lg">
+                <div class="text-yellow-500 text-lg">★★★★★</div>
+                <p class="mt-4 text-slate-600">
+                    "The soil prediction was accurate. I switched to maize and increased profit by 18%."
+                </p>
+                <h4 class="mt-4 font-semibold text-slate-800">
+                    Ramesh Patel
+                </h4>
+                <p class="text-sm text-slate-500">Maharashtra</p>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="bg-white p-6 rounded-2xl shadow-lg">
+                <div class="text-yellow-500 text-lg">★★★★★</div>
+                <p class="mt-4 text-slate-600">
+                    "Inputing soil info made everything easy. The AI lifecycle advice is very helpful."
+                </p>
+                <h4 class="mt-4 font-semibold text-slate-800">
+                    Sita Devi
+                </h4>
+                <p class="text-sm text-slate-500">Odisha</p>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="bg-white p-6 rounded-2xl shadow-lg">
+                <div class="text-yellow-500 text-lg">★★★★★</div>
+                <p class="mt-4 text-slate-600">
+                    "Best platform for crop planning. My tomato yield improved significantly."
+                </p>
+                <h4 class="mt-4 font-semibold text-slate-800">
+                    Ravi Kumar
+                </h4>
+                <p class="text-sm text-slate-500">Telangana</p>
+            </div>
+<div class="bg-white mt-12 p-8 rounded-2xl shadow-lg w-full">
+    <h3 class="text-2xl font-bold text-slate-800 text-center">
+        Rate & Review Our AI Prediction System 🌾
+    </h3>
+
+    <!-- ⭐ Rating Stars -->
+    <div class="flex justify-center gap-2 mt-6 text-3xl cursor-pointer" 
+         id="starContainer">
+        <span onclick="rateApp(1)">☆</span>
+        <span onclick="rateApp(2)">☆</span>
+        <span onclick="rateApp(3)">☆</span>
+        <span onclick="rateApp(4)">☆</span>
+        <span onclick="rateApp(5)">☆</span>
+    </div>
+
+    <p class="mt-4 text-slate-600 text-center">
+        Average Rating: <span id="avgRating">4.9</span> / 5
+    </p>
+
+    <p class="text-sm text-slate-500 text-center mb-6">
+        Based on <span id="totalRatings">742</span> farmer reviews
+    </p>
+
+    <!-- 📝 Text Feedback -->
+    <label class="font-semibold text-slate-700">
+        Share Your Feedback
+    </label>
+
+    <textarea id="feedbackText"
+        rows="4"
+        placeholder="Write your experience here..."
+        class="mt-2 w-full border p-3 rounded-xl"></textarea>
+
+    <button onclick="submitFeedback()"
+        class="mt-4 bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-xl">
+        Submit Feedback
+    </button>
+
+    <p id="feedbackMsg"
+       class="mt-3 text-green-600 font-semibold hidden">
+        Thank you for your valuable feedback! 🌟
+    </p>
+
+</div>
+
+</div>
+
 
             <section id="section-predictor" class="hidden">
                 <div class="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10">
@@ -700,19 +804,71 @@ document.getElementById('chat-input')?.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') sendChatMessage();
 });
 
-document.querySelectorAll('.faq-question').forEach(button => {
-    button.addEventListener('click', () => {
-        const faqItem = button.parentElement;
-        faqItem.classList.toggle('active');
+// document.querySelectorAll('.faq-question').forEach(button => {
+//     button.addEventListener('click', () => {
+//         const faqItem = button.parentElement;
+//         faqItem.classList.toggle('active');
+//     });
+// });
+let totalRatings = 742;
+let currentAverage = 4.9;
+let hasRated = false;
+let hasGivenFeedback = false;
+
+function rateApp(stars) {
+
+    const starElements = document.querySelectorAll("#starContainer span");
+
+    starElements.forEach((star, index) => {
+        star.textContent = index < stars ? "★" : "☆";
     });
-});
 
+    if (!hasRated) {
+        currentAverage =
+            ((currentAverage * totalRatings) + stars) / (totalRatings + 1);
+        totalRatings += 1;
+        hasRated = true;
+    }
 
+    document.getElementById("avgRating").innerText =
+        currentAverage.toFixed(1);
+    document.getElementById("totalRatings").innerText =
+        totalRatings;
+}
+
+function submitFeedback() {
+
+    const feedback = document.getElementById("feedbackText").value.trim();
+
+    if (!feedback) {
+        alert("Please write your feedback before submitting.");
+        return;
+    }
+
+    if (hasGivenFeedback) {
+        alert("You have already submitted feedback.");
+        return;
+    }
+
+    // Show thank you message
+    document.getElementById("feedbackMsg").classList.remove("hidden");
+
+    // Optional: clear textarea
+    document.getElementById("feedbackText").value = "";
+
+    hasGivenFeedback = true;
+}
     </script>
     <div id="google_translate_element" style="display:none;"></div>
 
 <!-- Google Init Function -->
 <script>
+    // --- FAQ TOGGLE ---
+    document.querySelectorAll('.faq-question').forEach(button => {
+        button.addEventListener('click', () => {
+            button.parentElement.classList.toggle('active');
+        });
+    }); 
 function googleTranslateElementInit() {
     new google.translate.TranslateElement({
         pageLanguage: 'en',
